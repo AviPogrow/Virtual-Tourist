@@ -2,7 +2,7 @@
 //  Pin+CoreDataProperties.swift
 //  Virtual-Tourist
 //
-//  Created by Jack Ngai on 10/26/16.
+//  Created by Jack Ngai on 10/29/16.
 //  Copyright © 2016 Jack Ngai. All rights reserved.
 //  This file was automatically generated and should not be edited.
 //
@@ -27,10 +27,10 @@ extension Pin {
 extension Pin {
 
     @objc(addPhotosObject:)
-    @NSManaged public func addToPhotos(_ value: Photos)
+    @NSManaged public func addToPhotos(_ value: Photo)
 
     @objc(removePhotosObject:)
-    @NSManaged public func removeFromPhotos(_ value: Photos)
+    @NSManaged public func removeFromPhotos(_ value: Photo)
 
     @objc(addPhotos:)
     @NSManaged public func addToPhotos(_ values: NSSet)

@@ -2,7 +2,7 @@
 //  Pin+CoreDataClass.swift
 //  Virtual-Tourist
 //
-//  Created by Jack Ngai on 10/26/16.
+//  Created by Jack Ngai on 10/29/16.
 //  Copyright © 2016 Jack Ngai. All rights reserved.
 //  This file was automatically generated and should not be edited.
 //
@@ -15,7 +15,14 @@ import MapKit
 public class Pin: NSManagedObject, MKAnnotation {
 
     public var coordinate: CLLocationCoordinate2D {
-        return CLLocationCoordinate2D(latitude: latitude, longitude: longitude)
+        
+        get {
+            return CLLocationCoordinate2D(latitude: latitude, longitude: longitude)
+        }
+        
+        set(coordinate){
+            self.coordinate = coordinate
+        }
     }
     
     
@@ -32,6 +39,4 @@ public class Pin: NSManagedObject, MKAnnotation {
         latitude = annotationLatitude
         longitude = annotationLongitude
     }
- 
-    
 }

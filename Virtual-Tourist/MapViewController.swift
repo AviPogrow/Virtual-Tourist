@@ -8,38 +8,233 @@
 
 import UIKit
 import MapKit
+import CoreData
 
+
+// Currently, I can save to Core Data (don't know what I'm doing)
+// TODO: Setup Core Data so that I know what I'm doing
+// TODO: Setup UICollection to display all the photos
+
+// Create a class that subclasses UIViewController and follows the MKMapViewDelegate protocol
 class MapViewController: UIViewController, MKMapViewDelegate {
-
+    
+    // Setup an outlet for mapView
     @IBOutlet weak var mapView: MKMapView!
     
+    // Create a pins array of type Pin Object
+    // Pin Object follows MKAnnotation protocol so they an be displayed on the map
     var pins: [Pin] = []
     
-    override func viewWillAppear(_ animated: Bool) {
-        super.viewWillAppear(animated)
-        //getData()
-    }
+    // Get access to managed context
+    let managedContext = (UIApplication.shared.delegate as! AppDelegate).persistentContainer.viewContext
+    
+    // create a selectedPin variable to pass the selected pin coordinates to PhotoViewController
+    var selectedPin:Pin!
+    
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        
+        
+        // Temporary, set default view to nyc area so we know there are pics
+        let nycCoordinates = CLLocationCoordinate2D(latitude: 40.678, longitude: -73.944 )
+        let regionRadius: CLLocationDistance = 10000
+        let region = MKCoordinateRegionMakeWithDistance(nycCoordinates, regionRadius * 2.0, regionRadius * 2.0)
+        mapView.setRegion(region, animated: true)
+        
+        // Set delegate to self
         mapView.delegate = self
+        
+        // Populate pins array with pins from Core Data
         getData()
+        
+        // Display pins from pins array on the map
         mapView.addAnnotations(pins)
+        
+        // Add gesture recognizer so 1 second long press will call addAnnotation function
         tapToAddAnnotation()
-        // Do any additional setup after loading the view, typically from a nib.
     }
     
-    override func didReceiveMemoryWarning() {
-        super.didReceiveMemoryWarning()
-        // Dispose of any resources that can be recreated.
-    }
     
     func tapToAddAnnotation(){
         let longPress: UILongPressGestureRecognizer = UILongPressGestureRecognizer(target: self, action: #selector(addAnnotation))
         longPress.minimumPressDuration = 1.0
         mapView.addGestureRecognizer(longPress)
     }
+    
+    override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
+        
+        // Do this only if segue identifier is toPhotoView
+        if segue.identifier == "toPhotoView"{
+            
+            // Setup the PhotoViewController, pass the coordinates from selectedPin
+            let controller = segue.destination as! PhotoViewController
+            controller.selectedPin = selectedPin
+            
+            
 
+            /*
+            
+            let photoFetchRequest:NSFetchRequest<Pin> = Pin.fetchRequest()
+            
+            let predicate = NSPredicate(format: "pin == %@", selectedPin as CVarArg)
+            
+            photoFetchRequest.predicate = predicate
+            do{
+                //FlickrClient.sharedInstance().photos = try context.fetch(Photo.fetchRequest())
+                //FlickrClient.sharedInstance().photos = try context.fetch(photoFetchRequest)
+                
+            } catch {
+                print("Did not find photos matching pin")
+            }
+            
+            // Check if photos array is empty, retrieve from flickr
+            // else use what's available in Core Data
+            
+            if FlickrClient.sharedInstance().photos.isEmpty{
+                
+                let methodParameters: [String: String?] = [
+                    FlickrConstants.ParameterKeys.Method:FlickrConstants.ParameterValues.SearchMethod,
+                    FlickrConstants.ParameterKeys.APIKey:FlickrConstants.ParameterValues.APIKey,
+                    FlickrConstants.ParameterKeys.BoundingBox:bboxString(latitude: selectedPin.coordinate.latitude, longitude: selectedPin.coordinate.longitude),
+                    FlickrConstants.ParameterKeys.SafeSearch:FlickrConstants.ParameterValues.UseSafeSearch,
+                    FlickrConstants.ParameterKeys.Extras:FlickrConstants.ParameterValues.MediumURL,
+                    FlickrConstants.ParameterKeys.Format:FlickrConstants.ParameterValues.ResponseFormat,
+                    FlickrConstants.ParameterKeys.NoJSONCallback:FlickrConstants.ParameterValues.DisableJSONCallback
+                ]
+                let getRequest = FlickrClient.sharedInstance().get(parameters: methodParameters as [String : AnyObject])
+                _ = FlickrClient.sharedInstance().startTask(request: getRequest, completionHandlerForTask: { (data, error) in
+                    guard error == nil else {
+                        print("Received error getting images from Flickr")
+                        return
+                    }
+                    
+                    guard let data = data else {
+                        print("Unable to unwrap data")
+                        return
+                    }
+                    
+                    // Confirmed Flickr portion works fine via this print statement
+                    print(data)
+                    
+                    // Save Flickr images to Core Data
+                    
+                    // Pull out the photos dictionary from data, pull out the photos array from the photos dictionary
+                    guard let photosDictionary = data[FlickrConstants.ResponseKeys.Photos] as? [String:AnyObject],
+                        let photosArray = photosDictionary[FlickrConstants.ResponseKeys.Photo] as? [[String:AnyObject]]
+                        else {
+                            print("Unable to find \(FlickrConstants.ResponseKeys.Photos) and \(FlickrConstants.ResponseKeys.Photo) in \(data)")
+                            return
+                    }
+                    
+                    // TODO: Take this out, take the first 20 images and display it
+                    // in the collection view and save it to Core Data
+            
+                    // Took this out: If photosArray is greater than 20, randomly select 20 images
+                    // Immediate goal is to just save first 20 images
+                    
+                    // if photosArray.count > 20{
+                        
+                        for _ in 0...19{
+                            // Use random number to pick a photo
+                            let photoDictionary = photosArray[RandomImage.sharedInstance().randomNumber.nextInt()] as [String:AnyObject]
+                            
+                            guard let imageURLString = photoDictionary[FlickrConstants.ResponseKeys.MediumURL] as? String else {
+                                print("Unable to locate image URL in photo dictionary")
+                                return
+                            }
+                            
+                            // Decode the image URL to image
+                            guard let imageURL = URL(string: imageURLString),
+                                let imageData = try? Data(contentsOf: imageURL),
+                                let image = UIImage(data: imageData) else {
+                                    print("Unable to process URL from photo dictionary into image.")
+                                    return
+                            }
+                            
+                            
+                            // Save image to Core Data
+                            
+                            let context = (UIApplication.shared.delegate as! AppDelegate).persistentContainer.viewContext
+                            let photo = Photo(context: context)
+                            photo.image = imageData as NSData
+                            (UIApplication.shared.delegate as! AppDelegate).saveContext()
+                            
+                            // print image to get rid of warning
+                            print(image)
+                        }
+                        
+                    /* } else {
+                        // Save the first available to the last image found to Core Data
+                        for imageNumber in 0...photosArray.count{
+                            let photoDictionary = photosArray[imageNumber] as [String:AnyObject]
+                            
+                            guard let imageURLString = photoDictionary[FlickrConstants.ResponseKeys.MediumURL] as? String else {
+                                print("Unable to locate image URL in photo dictionary")
+                                return
+                            }
+                            
+                            // Decode the image URL to image
+                            guard let imageURL = URL(string: imageURLString),
+                                let imageData = try? Data(contentsOf: imageURL),
+                                let image = UIImage(data: imageData) else {
+                                    print("Unable to process URL from photo dictionary into image.")
+                                    return
+                            }
+                            
+                            
+                            // Save image to Core Data
+                            
+                            let context = (UIApplication.shared.delegate as! AppDelegate).persistentContainer.viewContext
+                            let photo = Photo(context: context)
+                            photo.image = imageData as NSData
+                            (UIApplication.shared.delegate as! AppDelegate).saveContext()
+                            
+                            // print image to get rid of warning
+                            print(image)
+                             } */
+                    //}
+                    
+                    
+                    /*
+                     if photosArray.isEmpty {
+                     print("photosArray is empty")
+                     self.displayImageFromFlickrBySearch(methodParameters, pageParameter: 1)
+                     return
+                     } */
+                    
+                    
+                })
+            } else {
+                let photo = FlickrClient.sharedInstance().photos.first
+                
+                let imageData = photo?.image as? Data
+                let image = UIImage(data: imageData!)
+                print(image!)
+                
+                
+                
+            }
+            
+            */
+        }
+        
+    }
+
+    func mapView(_ mapView: MKMapView, didSelect view: MKAnnotationView) {
+        
+        // Save the coordinates of selected pin to selectedPin variable
+        //guard let coordinates
+        let context = (UIApplication.shared.delegate as! AppDelegate).persistentContainer.viewContext
+        let pin = Pin(context: context)
+        pin.latitude = (view.annotation?.coordinate.latitude)!
+        pin.longitude = (view.annotation?.coordinate.longitude)!
+        selectedPin = pin
+        
+        //selectedPin.coordinate = view.annotation?.coordinate
+        //currentPinCoordinates = view.annotation?.coordinate
+        performSegue(withIdentifier: "toPhotoView", sender: self)
+    }
     
     func addAnnotation(gestureRecognizer: UIGestureRecognizer){
         print("Received Long press")
@@ -51,27 +246,40 @@ class MapViewController: UIViewController, MKMapViewDelegate {
             annotation.coordinate = coordinates
             mapView.addAnnotation(annotation)
             
-            //Save to Core Data
+            //Save pin to Core Data
             let context = (UIApplication.shared.delegate as! AppDelegate).persistentContainer.viewContext
             let pin = Pin(context: context)
             pin.latitude = annotation.coordinate.latitude
             pin.longitude = annotation.coordinate.longitude
             (UIApplication.shared.delegate as! AppDelegate).saveContext()
             
+            // TODO: Start getting photos from Flickr?
+            
         }
     }
     
     func getData() {
-        let context = (UIApplication.shared.delegate as! AppDelegate).persistentContainer.viewContext
+
         do{
-            pins = try context.fetch(Pin.fetchRequest())
+            pins = try managedContext.fetch(Pin.fetchRequest())
+            
         } catch {
             print("Unable to fetch data")
         }
         
     }
     
-
+    
+    /*
+    fileprivate func bboxString(latitude: Double, longitude: Double) -> String {
+        let minLat = max(-90.00,latitude - FlickrConstants.SearchBBoxHalfWidth)
+        let maxLat = min(90.00, latitude + FlickrConstants.SearchBBoxHalfWidth)
+        let minLon = max(-180.00, longitude - FlickrConstants.SearchBBoxHalfHeight)
+        let maxLon = min(180.00, longitude + FlickrConstants.SearchBBoxHalfHeight)
+        
+        return "\(minLon),\(minLat),\(maxLon),\(maxLat)"
+    }
+ */
     
 
 
