@@ -223,16 +223,52 @@ class MapViewController: UIViewController, MKMapViewDelegate {
 
     func mapView(_ mapView: MKMapView, didSelect view: MKAnnotationView) {
         
-        // Save the coordinates of selected pin to selectedPin variable
-        //guard let coordinates
-        let context = (UIApplication.shared.delegate as! AppDelegate).persistentContainer.viewContext
-        let pin = Pin(context: context)
-        pin.latitude = (view.annotation?.coordinate.latitude)!
-        pin.longitude = (view.annotation?.coordinate.longitude)!
-        selectedPin = pin
+        // Fetch from Core Data a pin that matches the pin that the user selected based on coordinate
+        // If pin found, set pin as selectedPin, otherwise create pin and save to Core Data
         
-        //selectedPin.coordinate = view.annotation?.coordinate
-        //currentPinCoordinates = view.annotation?.coordinate
+        
+        // Get Context
+        let context = (UIApplication.shared.delegate as! AppDelegate).persistentContainer.viewContext
+        
+        // Create fetch request
+        let pinFetch: NSFetchRequest<Pin> = Pin.fetchRequest()
+        
+        // Create the predicate
+        //pinFetch.predicate = NSPredicate(format: "%K == %@", #keyPath(Pin.coordinate), view.annotation?.coordinate as! CVarArg)
+        
+        // Core Data stores a double that is rounded up slightly (ex: 40.640715152688358 stored as 40.64071515268836) so %K == %@
+        // will fail every time. 
+    
+
+        
+        
+        /*
+        var coreDataLatitude = #keyPath(Pin.latitude)
+        coreDataLatitude.characters.removeLast()
+        */
+        
+        //pinFetch.predicate = NSCompoundPredicate(type: .and, subpredicates: [NSPredicate(format: "%K == %@", (view.annotation?.coordinate.latitude)!,#keyPath(Pin.latitude)), NSPredicate(format: "%K == %@", (view.annotation?.coordinate.longitude)!, #keyPath(Pin.longitude))])
+        
+        pinFetch.predicate = NSPredicate(format: "%K == %@", #keyPath(Pin.latitude), (view.annotation?.coordinate.latitude)!)
+        
+        // Run fetch
+        do {
+            let results = try context.fetch(pinFetch)
+            if results.count > 0 {
+                // Found pin, set found pin to selectedPin
+                selectedPin = results.first
+            } else {
+                // Pin not found in Core Data, create a new pin and saved the coordinates that user selected into new pin
+                let pin = Pin(context: context)
+                pin.latitude = (view.annotation?.coordinate.latitude)!
+                pin.longitude = (view.annotation?.coordinate.longitude)!
+                selectedPin = pin
+                try context.save()
+            }
+        } catch let error as NSError {
+            print("Unable to fetch \(error), \(error.userInfo)")
+        }
+    
         performSegue(withIdentifier: "toPhotoView", sender: self)
     }
     
@@ -285,4 +321,6 @@ class MapViewController: UIViewController, MKMapViewDelegate {
 
 
 }
+
+
 

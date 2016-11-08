@@ -154,7 +154,10 @@ class PhotoViewController: UIViewController, UICollectionViewDataSource, UIColle
     }
     
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
-        let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "photoCell", for: indexPath)
+        let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "photoCell", for: indexPath) as! PhotoViewCell
+        let photoData = photos[indexPath.row]
+        let photo = UIImage(data: photoData.image as! Data)
+        cell.photoImageView.image = photo
         cell.backgroundColor = .black
         return cell
         
