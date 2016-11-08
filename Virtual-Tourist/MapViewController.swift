@@ -237,19 +237,12 @@ class MapViewController: UIViewController, MKMapViewDelegate {
         //pinFetch.predicate = NSPredicate(format: "%K == %@", #keyPath(Pin.coordinate), view.annotation?.coordinate as! CVarArg)
         
         // Core Data stores a double that is rounded up slightly (ex: 40.640715152688358 stored as 40.64071515268836) so %K == %@
-        // will fail every time. 
-    
-
+        // will fail every time.
         
-        
-        /*
-        var coreDataLatitude = #keyPath(Pin.latitude)
-        coreDataLatitude.characters.removeLast()
-        */
+        // Comparing just latitude as a test
+        pinFetch.predicate = NSPredicate(format: "%K == %@", #keyPath(Pin.latitude), (view.annotation?.coordinate.latitude)!)
         
         //pinFetch.predicate = NSCompoundPredicate(type: .and, subpredicates: [NSPredicate(format: "%K == %@", (view.annotation?.coordinate.latitude)!,#keyPath(Pin.latitude)), NSPredicate(format: "%K == %@", (view.annotation?.coordinate.longitude)!, #keyPath(Pin.longitude))])
-        
-        pinFetch.predicate = NSPredicate(format: "%K == %@", #keyPath(Pin.latitude), (view.annotation?.coordinate.latitude)!)
         
         // Run fetch
         do {
