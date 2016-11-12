@@ -75,16 +75,22 @@
                                                 <imageView userInteractionEnabled="NO" contentMode="scaleToFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" translatesAutoresizingMaskIntoConstraints="NO" id="vHy-6J-yL7">
                                                     <rect key="frame" x="0.0" y="0.0" width="100" height="100"/>
                                                 </imageView>
+                                                <activityIndicatorView opaque="NO" contentMode="scaleToFill" horizontalHuggingPriority="750" verticalHuggingPriority="750" hidesWhenStopped="YES" animating="YES" style="gray" translatesAutoresizingMaskIntoConstraints="NO" id="uWW-y9-bLA">
+                                                    <rect key="frame" x="39.823215611523437" y="40.073056998113373" width="19.999999999999773" height="20.000000000000078"/>
+                                                </activityIndicatorView>
                                             </subviews>
                                         </view>
                                         <constraints>
                                             <constraint firstAttribute="trailing" secondItem="vHy-6J-yL7" secondAttribute="trailing" id="1ie-gc-rec"/>
                                             <constraint firstItem="vHy-6J-yL7" firstAttribute="top" secondItem="2g5-YL-ocX" secondAttribute="top" id="5Kb-NX-Oqr"/>
+                                            <constraint firstItem="uWW-y9-bLA" firstAttribute="centerX" secondItem="vHy-6J-yL7" secondAttribute="centerX" id="6l9-lx-VbS"/>
                                             <constraint firstItem="vHy-6J-yL7" firstAttribute="leading" secondItem="2g5-YL-ocX" secondAttribute="leading" id="UPo-DZ-Kya"/>
                                             <constraint firstAttribute="bottom" secondItem="vHy-6J-yL7" secondAttribute="bottom" id="e4W-x0-zVA"/>
+                                            <constraint firstItem="uWW-y9-bLA" firstAttribute="centerY" secondItem="vHy-6J-yL7" secondAttribute="centerY" id="z3m-9M-yxx"/>
                                         </constraints>
                                         <size key="customSize" width="100" height="100"/>
                                         <connections>
+                                            <outlet property="loadingIndicator" destination="uWW-y9-bLA" id="hva-WZ-AuW"/>
                                             <outlet property="photoImageView" destination="vHy-6J-yL7" id="8GN-mu-QuB"/>
                                         </connections>
                                     </collectionViewCell>
@@ -119,7 +125,7 @@
                 </navigationController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="gKw-xi-JCL" userLabel="First Responder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="32.799999999999997" y="64.31784107946028"/>
+            <point key="canvasLocation" x="30" y="72"/>
         </scene>
     </scenes>
 </document>

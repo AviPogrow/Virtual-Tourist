@@ -33,7 +33,6 @@ class FlickrClient: NSObject {
             parsedResult = try JSONSerialization.jsonObject(with: data, options: .allowFragments)
         } catch {
             print("Error converting JSON to foundation objects")
-            //completionHandler(nil, <#T##Error#>)
         }
         completionHandler(parsedResult as AnyObject, nil)
     }
