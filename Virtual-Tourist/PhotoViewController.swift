@@ -79,6 +79,11 @@ class PhotoViewController: UIViewController, UICollectionViewDataSource, UIColle
     
     // MARK: Actions
     @IBAction func reloadPhotos(_ sender: UIBarButtonItem) {
+        //photos.removeAll(keepingCapacity: true)
+        
+        for photo in photos{
+            photo.image = nil
+        }
         photoCollectionView.reloadData()
     }
     
@@ -86,10 +91,9 @@ class PhotoViewController: UIViewController, UICollectionViewDataSource, UIColle
     // MARK: Methods
     
     // This method checks if the image at the specified indexPath has been populated
-    // If not, populate the cell with a blank image,
-    // then use session.dataTask to get the image from Flickr and save it to Core Data
+    // If not, use try? Data(contentsOf:) to get the image
     func checkImage(index: Int, cell: PhotoViewCell){
-        print("in CheckImage")
+        print("%%in CheckImage")
         
         if photos[index].image == nil {
             
@@ -145,7 +149,7 @@ class PhotoViewController: UIViewController, UICollectionViewDataSource, UIColle
     // MARK: UICollectionViewDataSource
     
     override func viewDidLayoutSubviews() {
-        print("in viewDidLayoutSubviews()")
+        print("%%in viewDidLayoutSubviews()")
         super.viewDidLayoutSubviews()
         
         // Layout the collection view so that cells take up 1/3 of the width,
@@ -165,7 +169,7 @@ class PhotoViewController: UIViewController, UICollectionViewDataSource, UIColle
     }
     
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
-        print("in collectionView(_:numberOfItemsInSection")
+        print("%%in collectionView(_:numberOfItemsInSection")
         let sectionInfo = self.fetchResultsController.sections![section]
         
         return sectionInfo.numberOfObjects
@@ -176,10 +180,7 @@ class PhotoViewController: UIViewController, UICollectionViewDataSource, UIColle
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
         let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "photoCell", for: indexPath) as! PhotoViewCell
     
-    
         checkImage(index: indexPath.row, cell: cell)
-    
-
         
         return cell
         

@@ -10,13 +10,7 @@
  
 
  
-- Images display as they are downloaded. They are shown with placeholders in a collection view while they download, and displayed as soon as possible.
- 
-    xxxxSet photos[] to 20 to see if it shows black box by default - photos array hold photo, need to instantiate 20 blanks photos
- 
-    Create a method to insert 20 blank photos (black boxes) into the photos array, call this method in "loadPhotos"
- 
-    Replace blank images with images downloaded? How to identify blank images? How to replace them?
+- (Done) Images display as they are downloaded. They are shown with placeholders in a collection view while they download, and displayed as soon as possible.
  
 - When photos are loading from Flickr, the tap gesture doesn't seem to work. How to fix it?
     

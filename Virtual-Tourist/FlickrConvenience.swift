@@ -83,10 +83,28 @@ extension FlickrClient {
             // TODO: Change this so it randomly picks 20 images if there's more than 20 images
             // TODO: Save the image URL to Core Data
             
-            // Save first 20 images to Core Data
-            for index in 0...19{
-                // Use random number to pick a photo
-                let photoDictionary = photosArray[index] as [String:AnyObject]
+            // Determine total available images to download from Flickr
+            guard let totalImageFromFlickrStringValue = photosDictionary["total"] as? String,
+                let totalImageFromFlickr = Int(totalImageFromFlickrStringValue) else {
+                    print("Unable to determine total images available on Flickr")
+                    return
+            }
+            
+            // Flickr only provides 250 images per page by default, so if the total available is greater than 250,
+            // set maxRand (use to determine # of images to download and the random number upperbound) to 250,
+            // otherwise set it to whatever is available (1 - 249)
+            let maxRand = totalImageFromFlickr < 250 ? totalImageFromFlickr : 250
+            
+            // Set the for loop upper limit to 21 images if there's more than 21 available,
+            // otherwise set it to whatever is available so we don't download the same image twice
+            let totalToDownload = maxRand < 20 ? maxRand : 20
+            
+            // Save 21 images to Core Data
+            for _ in 0...totalToDownload{
+                // Uses GKShuffleDistribution (in RandomImage.swift) to select a random number to pick a photo
+                // GKShuffleDistribution will not repeat the same number until all numbers are used
+                let randomNumber = RandomImage.sharedInstance().chooseRandomNumber(maxValue: maxRand)
+                let photoDictionary = photosArray[randomNumber] as [String:AnyObject]
                 
                 guard let imageURLString = photoDictionary[FlickrConstants.ResponseKeys.MediumURL] as? String else {
                     print("Unable to locate image URL in photo dictionary")

@@ -10,7 +10,13 @@ import Foundation
 import GameplayKit
 
 class RandomImage:NSObject {
-    let randomNumber = GKShuffledDistribution(lowestValue: 0, highestValue: FlickrClient.sharedInstance().photos.count)
+    
+    func chooseRandomNumber(maxValue: Int) -> Int{
+        return GKShuffledDistribution(lowestValue: 0, highestValue: maxValue).nextInt()
+    }
+    
+    
+    //let randomNumber = GKShuffledDistribution(lowestValue: 0, highestValue: 100)
     
     class func sharedInstance() -> RandomImage{
         struct Singleton{

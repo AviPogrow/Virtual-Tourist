@@ -30,15 +30,7 @@ class MapViewController: UIViewController, MKMapViewDelegate {
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        
-        
-        // Temporary, set default view to nyc area so we know there are pics
-        /*
-         let nycCoordinates = CLLocationCoordinate2D(latitude: 40.678, longitude: -73.944 )
-         let regionRadius: CLLocationDistance = 10000
-         let region = MKCoordinateRegionMakeWithDistance(nycCoordinates, regionRadius * 2.0, regionRadius * 2.0)
-         mapView.setRegion(region, animated: true)
-         */
+
         
         // Set delegate to self
         mapView.delegate = self
