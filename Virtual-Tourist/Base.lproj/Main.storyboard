@@ -76,7 +76,7 @@
                                                     <rect key="frame" x="0.0" y="0.0" width="100" height="100"/>
                                                 </imageView>
                                                 <activityIndicatorView opaque="NO" contentMode="scaleToFill" horizontalHuggingPriority="750" verticalHuggingPriority="750" hidesWhenStopped="YES" animating="YES" style="gray" translatesAutoresizingMaskIntoConstraints="NO" id="uWW-y9-bLA">
-                                                    <rect key="frame" x="39.823215611523437" y="40.073056998113373" width="19.999999999999773" height="20.000000000000078"/>
+                                                    <rect key="frame" x="40" y="40" width="20" height="20"/>
                                                 </activityIndicatorView>
                                             </subviews>
                                         </view>
@@ -99,7 +99,14 @@
                         </subviews>
                         <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
                     </view>
-                    <navigationItem key="navigationItem" id="7Xu-lA-84K"/>
+                    <navigationItem key="navigationItem" id="7Xu-lA-84K">
+                        <barButtonItem key="backBarButtonItem" title="Back" id="Ef6-q2-1xt"/>
+                        <barButtonItem key="rightBarButtonItem" systemItem="refresh" id="1Ib-5F-Hhi">
+                            <connections>
+                                <action selector="reloadPhotos:" destination="g7s-13-W5e" id="YNe-Yt-pCW"/>
+                            </connections>
+                        </barButtonItem>
+                    </navigationItem>
                     <connections>
                         <outlet property="miniMap" destination="RaY-H5-MhU" id="3sM-O4-E7q"/>
                         <outlet property="photoCollectionView" destination="ssD-b5-69i" id="mbO-bD-4CP"/>

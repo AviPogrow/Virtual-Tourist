@@ -22,7 +22,7 @@ class MapViewController: UIViewController, MKMapViewDelegate {
     var pins: [Pin] = []
     
     // Get access to managed context
-    let managedContext = (UIApplication.shared.delegate as! AppDelegate).persistentContainer.viewContext
+    let managedContext = CoreDataStack.sharedInstance().persistentContainer.viewContext
     
     // create a selectedPin variable to pass the selected pin coordinates to PhotoViewController
     var selectedPin:Pin!
@@ -65,6 +65,12 @@ class MapViewController: UIViewController, MKMapViewDelegate {
         // Do this only if segue identifier is toPhotoView
         if segue.identifier == "toPhotoView"{
             
+            // Change the back button from "<Virtual Tourist" to "<Back"
+            // Learned from: http://stackoverflow.com/questions/28471164/how-to-set-back-button-text-in-swift
+            let backItem = UIBarButtonItem()
+            backItem.title = "Back"
+            navigationItem.backBarButtonItem = backItem
+            
             // Setup the PhotoViewController, pass the coordinates from selectedPin
             let controller = segue.destination as! PhotoViewController
             controller.selectedPin = selectedPin
@@ -76,10 +82,6 @@ class MapViewController: UIViewController, MKMapViewDelegate {
         
         // Fetch from Core Data a pin that matches the pin that the user selected based on coordinate
         // If pin found, set pin as selectedPin, otherwise create pin and save to Core Data
-        
-        
-        // Get Context
-        let context = (UIApplication.shared.delegate as! AppDelegate).persistentContainer.viewContext
         
         // Create fetch request
         let pinFetch: NSFetchRequest<Pin> = Pin.fetchRequest()
@@ -96,17 +98,17 @@ class MapViewController: UIViewController, MKMapViewDelegate {
         
         // Run fetch
         do {
-            let results = try context.fetch(pinFetch)
+            let results = try managedContext.fetch(pinFetch)
             if results.count > 0 {
                 // Found pin, set found pin to selectedPin
                 selectedPin = results.first
             } else {
                 // Pin not found in Core Data, create a new pin and saved the coordinates that user selected into new pin
-                let pin = Pin(context: context)
+                let pin = Pin(context: managedContext)
                 pin.latitude = (view.annotation?.coordinate.latitude)!
                 pin.longitude = (view.annotation?.coordinate.longitude)!
                 selectedPin = pin
-                try context.save()
+                try managedContext.save()
             }
         } catch let error as NSError {
             print("Unable to fetch \(error), \(error.userInfo)")
@@ -126,16 +128,16 @@ class MapViewController: UIViewController, MKMapViewDelegate {
             mapView.addAnnotation(annotation)
             
             //Save pin to Core Data
-            let context = (UIApplication.shared.delegate as! AppDelegate).persistentContainer.viewContext
-            let pin = Pin(context: context)
+
+            let pin = Pin(context: managedContext)
             pin.latitude = annotation.coordinate.latitude
             pin.longitude = annotation.coordinate.longitude
             
             // Start getting photos from Flickr
-            FlickrClient.sharedInstance().getPhotosURLFromFlickr(pin: pin, managed: context)
+            FlickrClient.sharedInstance().getPhotosURLFromFlickr(pin: pin, managed: managedContext)
             
             do {
-            try context.save()
+            try managedContext.save()
             }
             catch let error as NSError {
                 print("Unable to save \(error), \(error.userInfo)")

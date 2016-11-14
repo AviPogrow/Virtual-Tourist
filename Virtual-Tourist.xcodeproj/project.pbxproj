@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		980B28951DD7CC3700829C34 /* CoreDataStack.swift in Sources */ = {isa = PBXBuildFile; fileRef = 980B28941DD7CC3600829C34 /* CoreDataStack.swift */; };
 		980E723D1DD3C9E100451324 /* FlickrConvenience.swift in Sources */ = {isa = PBXBuildFile; fileRef = 980E723C1DD3C9E100451324 /* FlickrConvenience.swift */; };
 		980E723F1DD3E39900451324 /* To Do.swift in Sources */ = {isa = PBXBuildFile; fileRef = 980E723E1DD3E39900451324 /* To Do.swift */; };
 		98145F651DBC3C730040579B /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98145F641DBC3C730040579B /* AppDelegate.swift */; };
@@ -26,6 +27,7 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		980B28941DD7CC3600829C34 /* CoreDataStack.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CoreDataStack.swift; sourceTree = "<group>"; };
 		980E723C1DD3C9E100451324 /* FlickrConvenience.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FlickrConvenience.swift; sourceTree = "<group>"; };
 		980E723E1DD3E39900451324 /* To Do.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "To Do.swift"; sourceTree = "<group>"; };
 		98145F611DBC3C730040579B /* Virtual-Tourist.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Virtual-Tourist.app"; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -95,6 +97,7 @@
 				98145F641DBC3C730040579B /* AppDelegate.swift */,
 				98A771B91DC3B5E8006EFCEB /* FlickrClient.swift */,
 				980E723C1DD3C9E100451324 /* FlickrConvenience.swift */,
+				980B28941DD7CC3600829C34 /* CoreDataStack.swift */,
 				98A771BB1DC3BCEE006EFCEB /* FlickrConstants.swift */,
 				98CF95421DC79D6B0050B990 /* RandomImage.swift */,
 				98145F6B1DBC3C730040579B /* Virtual_Tourist.xcdatamodeld */,
@@ -223,6 +226,7 @@
 				989462301DC5938600014CFE /* Pin+CoreDataProperties.swift in Sources */,
 				98145F671DBC3C730040579B /* MapViewController.swift in Sources */,
 				9894622F1DC5938600014CFE /* Pin+CoreDataClass.swift in Sources */,
+				980B28951DD7CC3700829C34 /* CoreDataStack.swift in Sources */,
 				98A771BA1DC3B5E8006EFCEB /* FlickrClient.swift in Sources */,
 				98145F7A1DBC41C40040579B /* PhotoViewController.swift in Sources */,
 				98145F6D1DBC3C730040579B /* Virtual_Tourist.xcdatamodeld in Sources */,
