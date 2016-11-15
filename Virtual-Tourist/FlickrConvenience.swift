@@ -51,7 +51,7 @@ extension FlickrClient {
         let getRequest = FlickrClient.sharedInstance().get(parameters: methodParameters as [String : AnyObject])
         
         // Start the task
-        _ = FlickrClient.sharedInstance().startTask(request: getRequest, completionHandlerForTask: { (data, error) in
+        let task = FlickrClient.sharedInstance().startTask(request: getRequest, completionHandlerForTask: { (data, error) in
             guard error == nil else {
                 print("Received error getting images from Flickr")
                 return
@@ -91,20 +91,14 @@ extension FlickrClient {
             }
             
             // Flickr only provides 250 images per page by default, so if the total available is greater than 250,
-            // set maxRand (use to determine # of images to download and the random number upperbound) to 250,
+            // set urlTotal (use to determine # of images to download) to 250,
             // otherwise set it to whatever is available (1 - 249)
-            let maxRand = totalImageFromFlickr < 250 ? totalImageFromFlickr : 250
+            let urlTotal = totalImageFromFlickr < 250 ? totalImageFromFlickr : 250
             
-            // Set the for loop upper limit to 21 images if there's more than 21 available,
-            // otherwise set it to whatever is available so we don't download the same image twice
-            let totalToDownload = maxRand < 20 ? maxRand : 20
-            
-            // Save 21 images to Core Data
-            for _ in 0...totalToDownload{
-                // Uses GKShuffleDistribution (in RandomImage.swift) to select a random number to pick a photo
-                // GKShuffleDistribution will not repeat the same number until all numbers are used
-                let randomNumber = RandomImage.sharedInstance().chooseRandomNumber(maxValue: maxRand)
-                let photoDictionary = photosArray[randomNumber] as [String:AnyObject]
+            // Save each url into a photo object in Core Data
+            for index in 0...(urlTotal-1){
+                
+                let photoDictionary = photosArray[index] as [String:AnyObject]
                 
                 guard let imageURLString = photoDictionary[FlickrConstants.ResponseKeys.MediumURL] as? String else {
                     print("Unable to locate image URL in photo dictionary")
@@ -117,53 +111,29 @@ extension FlickrClient {
                 // Save url to photo object
                 photo.url = imageURLString
                 
+                // Save index to photo object (for filtering later)
+                photo.index = index + 1
+                
+                // Set inAlbume variable to false
+                photo.inAlbum = false
+                
                 // Save to photos array used by UICollectionView
                 self.photos.append(photo)
                 
                 // Save photo to Selected Pin
                 selectedPin.addToPhotos(photo)
-                
-                // Save photo object to Core Data
-                do {
-                    try context.save()
-                } catch let error as NSError {
-                    print("Unable to save \(error), \(error.userInfo)")
-                }
-                
-                /*
-                
-                // TODO: Stop here. Break this up so you use NSURL (is it URL now?)'s dataTaskWithURL to get the 
-                // associated image within the collection view delegate method cellForItemAt 
-                // TODO: Image retrieval needs to happen on a background thread
-                // Decode the image URL to image
-                
-                
-                //self.session.dataTask(with: <#T##URL#>, completionHandler: <#T##(Data?, URLResponse?, Error?) -> Void#>)
-                
-                DispatchQueue.global(qos: .background).async {
-                    guard let imageURL = URL(string: imageURLString),
-                        let imageData = try? Data(contentsOf: imageURL) else {
-                            print("Unable to process URL from photo dictionary into image.")
-                            return
-                    }
-                    
-
-                    
-                    // Place image data into photo object (stored as binary data)
-                    photo.image = imageData as NSData
-                    
-                 
-                    
-
-                    
-
-                    
-                }
-                */
-
+                            
             }
             
         })
+        task.resume()
+        
+        // Save photo object to Core Data
+        do {
+            try context.save()
+        } catch let error as NSError {
+            print("Unable to save \(error), \(error.userInfo)")
+        }
     }
     
     

@@ -19,6 +19,8 @@ class PhotoViewController: UIViewController, UICollectionViewDataSource, UIColle
     // MARK: Properties
     var selectedPin:Pin!
     var photos: [Photo] = []
+    var lowIndex = 1
+    var highIndex = 21
     
     var managedContext = CoreDataStack.sharedInstance().persistentContainer.viewContext
     
@@ -26,8 +28,6 @@ class PhotoViewController: UIViewController, UICollectionViewDataSource, UIColle
     var fetchResultsController: NSFetchedResultsController<Photo>!
     
 
-    
-    
     // MARK: View Lifecycle methods
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -42,9 +42,22 @@ class PhotoViewController: UIViewController, UICollectionViewDataSource, UIColle
         var fetchRequest: NSFetchRequest<Photo> = Photo.fetchRequest()
         var asyncFetchRequest: NSAsynchronousFetchRequest<Photo>!
         
+        let count = try! managedContext.count(for: fetchRequest)
         
-        // TODO: Not sure if this is correct. Trying to look for pins by using inverse relationship
-        fetchRequest.predicate = NSPredicate(format: "%K == %@", #keyPath(Photo.pins), self.selectedPin)
+        // Set highIndex to count in case the # of photos available is lower than highIndex
+        // TODO: Is this necessary? If it is out side of bounds, it will return 0 hits,
+        highIndex = highIndex > count ? count : highIndex
+        
+        
+        // TODO: Not sure if this is correct. Trying to look for photos that match a specific pin by using inverse relationship
+        //fetchRequest.predicate = NSPredicate(format: "%K == %@", #keyPath(Photo.pins), self.selectedPin)
+        
+        //fetchRequest.predicate = NSPredicate(format: "(%K == self.selectedPin) AND (%K BETWEEN {\(lowIndex), \(highIndex)})", #keyPath(Photo.pins) , #keyPath(Photo.index))
+        fetchRequest.predicate = NSPredicate(format: "%K BETWEEN {\(lowIndex), \(highIndex)}", #keyPath(Photo.index))
+        
+        // %K >= %@, #keyPath(Photo.index),
+        
+        //         pinFetch.predicate = NSPredicate(format: "(%K BETWEEN {\(lowerBoundLatitude), \(upperBoundLatitude) }) AND (%K BETWEEN {\(lowerBoundLongitude), \(upperBoundLongitude) })", #keyPath(Pin.latitude), #keyPath(Pin.longitude))
         
         // TODO: Need to add sort descriptor to NSFetchResultsController or it will crash with:
         // An instance of NSFetchedResultsController requires a fetch request with sort descriptors
@@ -79,7 +92,8 @@ class PhotoViewController: UIViewController, UICollectionViewDataSource, UIColle
     
     // MARK: Actions
     @IBAction func reloadPhotos(_ sender: UIBarButtonItem) {
-        //photos.removeAll(keepingCapacity: true)
+
+        //FlickrClient.sharedInstance().getPhotosURLFromFlickr(pin: selectedPin, managed: managedContext)
         
         for photo in photos{
             photo.image = nil
@@ -94,6 +108,8 @@ class PhotoViewController: UIViewController, UICollectionViewDataSource, UIColle
     // If not, use try? Data(contentsOf:) to get the image
     func checkImage(index: Int, cell: PhotoViewCell){
         print("%%in CheckImage")
+        
+        cell.photoImageView.image = nil
         
         if photos[index].image == nil {
             
@@ -156,6 +172,7 @@ class PhotoViewController: UIViewController, UICollectionViewDataSource, UIColle
         // with no space in-between.
         let layout : UICollectionViewFlowLayout = UICollectionViewFlowLayout()
         layout.sectionInset = UIEdgeInsets(top: 0, left: 0, bottom: 0, right: 0)
+        
         layout.minimumLineSpacing = 0
         layout.minimumInteritemSpacing = 0
         
@@ -178,6 +195,8 @@ class PhotoViewController: UIViewController, UICollectionViewDataSource, UIColle
     
     
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
+        // TODO: Clear the cell after you dequeue it so the old images won't show up during scrolling?
+        
         let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "photoCell", for: indexPath) as! PhotoViewCell
     
         checkImage(index: indexPath.row, cell: cell)

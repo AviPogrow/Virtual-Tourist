@@ -6,6 +6,7 @@
     <dependencies>
         <deployment identifier="iOS"/>
         <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="11524"/>
+        <capability name="Constraints to layout margins" minToolsVersion="6.0"/>
         <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
     </dependencies>
     <scenes>
@@ -21,22 +22,45 @@
                         <rect key="frame" x="0.0" y="0.0" width="375" height="667"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
-                            <mapView clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" fixedFrame="YES" mapType="standard" translatesAutoresizingMaskIntoConstraints="NO" id="kFY-dC-SXo">
+                            <mapView clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" mapType="standard" translatesAutoresizingMaskIntoConstraints="NO" id="kFY-dC-SXo">
                                 <rect key="frame" x="0.0" y="64" width="375" height="603"/>
-                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                             </mapView>
+                            <label hidden="YES" opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Tap a pin to delete it" textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="QRc-E1-sLi">
+                                <rect key="frame" x="0.0" y="626" width="375" height="41"/>
+                                <color key="backgroundColor" red="1" green="0.0" blue="0.0" alpha="1" colorSpace="calibratedRGB"/>
+                                <fontDescription key="fontDescription" type="boldSystem" pointSize="18"/>
+                                <color key="textColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
+                                <nil key="highlightedColor"/>
+                            </label>
                         </subviews>
                         <color key="backgroundColor" red="1" green="1" blue="1" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+                        <constraints>
+                            <constraint firstItem="kFY-dC-SXo" firstAttribute="trailing" secondItem="QRc-E1-sLi" secondAttribute="trailing" id="8Ou-yd-J8m"/>
+                            <constraint firstAttribute="trailingMargin" secondItem="QRc-E1-sLi" secondAttribute="trailing" constant="-16" id="BRE-0z-Rkg"/>
+                            <constraint firstItem="kFY-dC-SXo" firstAttribute="bottom" secondItem="wfy-db-euE" secondAttribute="top" id="VFb-bQ-Ehe"/>
+                            <constraint firstItem="QRc-E1-sLi" firstAttribute="top" secondItem="kFY-dC-SXo" secondAttribute="bottom" constant="-41" id="WWS-qC-v0m"/>
+                            <constraint firstItem="QRc-E1-sLi" firstAttribute="leading" secondItem="8bC-Xf-vdC" secondAttribute="leadingMargin" constant="-16" id="arH-H0-lif"/>
+                            <constraint firstItem="QRc-E1-sLi" firstAttribute="bottom" secondItem="wfy-db-euE" secondAttribute="top" id="hN2-du-soh"/>
+                            <constraint firstItem="kFY-dC-SXo" firstAttribute="top" secondItem="y3c-jy-aDJ" secondAttribute="bottom" id="iF8-JL-COW"/>
+                            <constraint firstItem="kFY-dC-SXo" firstAttribute="leading" secondItem="QRc-E1-sLi" secondAttribute="leading" id="nMl-t0-9Mi"/>
+                        </constraints>
                     </view>
-                    <navigationItem key="navigationItem" title="Virtual Tourist" id="g0R-3f-5Px"/>
+                    <navigationItem key="navigationItem" title="Virtual Tourist" id="g0R-3f-5Px">
+                        <barButtonItem key="rightBarButtonItem" title="Edit" id="i6l-TP-0Oo">
+                            <connections>
+                                <action selector="tappedEditButton:" destination="BYZ-38-t0r" id="c0e-u8-hTG"/>
+                            </connections>
+                        </barButtonItem>
+                    </navigationItem>
                     <connections>
+                        <outlet property="deletionWarningLabel" destination="QRc-E1-sLi" id="L2U-EU-zO0"/>
                         <outlet property="mapView" destination="kFY-dC-SXo" id="gKq-uB-Lig"/>
                         <segue destination="g7s-13-W5e" kind="show" identifier="toPhotoView" id="ymA-ia-3JB"/>
                     </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="dkx-z0-nzr" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="969" y="72"/>
+            <point key="canvasLocation" x="968.79999999999995" y="71.514242878560722"/>
         </scene>
         <!--Photo View Controller-->
         <scene sceneID="Xwr-2c-bKu">
@@ -54,8 +78,8 @@
                                 <rect key="frame" x="0.0" y="28" width="375" height="146"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                             </mapView>
-                            <collectionView clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" fixedFrame="YES" dataMode="prototypes" translatesAutoresizingMaskIntoConstraints="NO" id="ssD-b5-69i">
-                                <rect key="frame" x="0.0" y="173" width="375" height="494"/>
+                            <collectionView clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" fixedFrame="YES" showsHorizontalScrollIndicator="NO" dataMode="prototypes" translatesAutoresizingMaskIntoConstraints="NO" id="ssD-b5-69i">
+                                <rect key="frame" x="0.0" y="173" width="320" height="474"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                                 <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
                                 <collectionViewFlowLayout key="collectionViewLayout" minimumLineSpacing="10" minimumInteritemSpacing="10" id="4W2-kW-kqn">

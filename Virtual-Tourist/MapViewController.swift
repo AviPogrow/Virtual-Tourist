@@ -14,9 +14,12 @@ import CoreData
 // Create a class that subclasses UIViewController and follows the MKMapViewDelegate protocol
 class MapViewController: UIViewController, MKMapViewDelegate {
     
-    // Setup an outlet for mapView
+    // MARK: Outlets
     @IBOutlet weak var mapView: MKMapView!
+    @IBOutlet weak var deletionWarningLabel: UILabel!
     
+    
+    // MARK: Properties
     // Create a pins array of type Pin Object
     // Pin Object follows MKAnnotation protocol so they an be displayed on the map
     var pins: [Pin] = []
@@ -27,12 +30,13 @@ class MapViewController: UIViewController, MKMapViewDelegate {
     // create a selectedPin variable to pass the selected pin coordinates to PhotoViewController
     var selectedPin:Pin!
     
+    // A flag to determine if tapping deletes a pin or brings you to the
+    // photo view for that pin
+    var editMode = false
     
+    // MARK: Lifecycle methods
     override func viewDidLoad() {
         super.viewDidLoad()
-
-        
-        // Set delegate to self
         mapView.delegate = self
         
         // Populate pins array with pins from Core Data
@@ -45,13 +49,35 @@ class MapViewController: UIViewController, MKMapViewDelegate {
         tapToAddAnnotation()
     }
     
+    // MARK: IBActions
+    @IBAction func tappedEditButton(_ sender: UIBarButtonItem) {
+        
+        // if editMode is true, you are currently in edit mode,
+        // so tapping edit button again will turn off edit mode
+        // by hiding the deletionWarningLable, changing the edit
+        // button label to "Edit", and set editMode flag to false
+        if editMode{
+            deletionWarningLabel.isHidden = true
+            sender.title = "Edit"
+            editMode = false
+        } else {
+            deletionWarningLabel.isHidden = false
+            sender.title = "Done"
+            editMode = true
+        }
+        
+    }
     
+    // MARK: Methods
+    
+    // Add gesture recognizer so 1 second long press will call addAnnotation function
     func tapToAddAnnotation(){
         let longPress: UILongPressGestureRecognizer = UILongPressGestureRecognizer(target: self, action: #selector(addAnnotation))
         longPress.minimumPressDuration = 1.0
         mapView.addGestureRecognizer(longPress)
     }
     
+    // Pass the selectedPin to PhotoViewController
     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
         
         // Do this only if segue identifier is toPhotoView
@@ -70,10 +96,9 @@ class MapViewController: UIViewController, MKMapViewDelegate {
         
     }
 
+    // Fetch from Core Data a pin that matches the pin that the user selected based on coordinate
+    // If pin found, set pin as selectedPin, otherwise create pin and save to Core Data
     func mapView(_ mapView: MKMapView, didSelect view: MKAnnotationView) {
-        
-        // Fetch from Core Data a pin that matches the pin that the user selected based on coordinate
-        // If pin found, set pin as selectedPin, otherwise create pin and save to Core Data
         
         // Create fetch request
         let pinFetch: NSFetchRequest<Pin> = Pin.fetchRequest()
@@ -88,27 +113,52 @@ class MapViewController: UIViewController, MKMapViewDelegate {
         
         pinFetch.predicate = NSPredicate(format: "(%K BETWEEN {\(lowerBoundLatitude), \(upperBoundLatitude) }) AND (%K BETWEEN {\(lowerBoundLongitude), \(upperBoundLongitude) })", #keyPath(Pin.latitude), #keyPath(Pin.longitude))
         
-        // Run fetch
-        do {
-            let results = try managedContext.fetch(pinFetch)
-            if results.count > 0 {
-                // Found pin, set found pin to selectedPin
-                selectedPin = results.first
-            } else {
-                // Pin not found in Core Data, create a new pin and saved the coordinates that user selected into new pin
-                let pin = Pin(context: managedContext)
-                pin.latitude = (view.annotation?.coordinate.latitude)!
-                pin.longitude = (view.annotation?.coordinate.longitude)!
-                selectedPin = pin
-                try managedContext.save()
+        if editMode{
+            // Run fetch
+            do {
+                let results = try managedContext.fetch(pinFetch)
+                if results.count > 0 {
+                    // Delete the pin
+                    managedContext.delete(results.first!)
+                    // Save Core Data
+                    try managedContext.save()
+                    // Delete the annotation on the map
+                    mapView.removeAnnotation(results.first!)
+                } else {
+                    print("Unable to locate pin to delete")
+                }
+            } catch let error as NSError {
+                print("Unable to fetch \(error), \(error.userInfo)")
             }
-        } catch let error as NSError {
-            print("Unable to fetch \(error), \(error.userInfo)")
+            
+        } else {
+            // Run fetch
+            do {
+                let results = try managedContext.fetch(pinFetch)
+                if results.count > 0 {
+                    // Found pin, set found pin to selectedPin
+                    selectedPin = results.first
+                } else {
+                    // Pin not found in Core Data, create a new pin and saved the coordinates that user selected into new pin
+                    let pin = Pin(context: managedContext)
+                    pin.latitude = (view.annotation?.coordinate.latitude)!
+                    pin.longitude = (view.annotation?.coordinate.longitude)!
+                    selectedPin = pin
+                    try managedContext.save()
+                }
+            } catch let error as NSError {
+                print("Unable to fetch \(error), \(error.userInfo)")
+            }
+            
+            performSegue(withIdentifier: "toPhotoView", sender: self)
         }
-    
-        performSegue(withIdentifier: "toPhotoView", sender: self)
+        
+
     }
     
+    // Convert touch point on screen to coordinates on the map
+    // Start getting URLs of photos from Flickr
+    // 
     func addAnnotation(gestureRecognizer: UIGestureRecognizer){
         print("Received Long press")
         if gestureRecognizer.state == UIGestureRecognizerState.began{
@@ -119,8 +169,7 @@ class MapViewController: UIViewController, MKMapViewDelegate {
             annotation.coordinate = coordinates
             mapView.addAnnotation(annotation)
             
-            //Save pin to Core Data
-
+            // Place coordindates in a pin object
             let pin = Pin(context: managedContext)
             pin.latitude = annotation.coordinate.latitude
             pin.longitude = annotation.coordinate.longitude
@@ -128,17 +177,20 @@ class MapViewController: UIViewController, MKMapViewDelegate {
             // Start getting photos from Flickr
             FlickrClient.sharedInstance().getPhotosURLFromFlickr(pin: pin, managed: managedContext)
             
+            
+            //Save pin to Core Data
             do {
-            try managedContext.save()
+                try managedContext.save()
             }
             catch let error as NSError {
                 print("Unable to save \(error), \(error.userInfo)")
             }
             
-
+            
         }
     }
     
+    // Populate pins array with pins from Core Data
     func getData() {
 
         do{
