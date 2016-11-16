@@ -21,14 +21,18 @@
 - Change the photo download process to this:
         * - (Done) Download all photo URLs instead of randomly downloading 20
         * - (Done) Add an index to each photo object
-        * - Use NSPredicate in PhotoViewController to only return 20 objects, based on index, so it will return 1 - 20, 21 - 40, 41 - 60...
+        * - (Problem)Use NSPredicate in PhotoViewController to only return 20 objects, based on index, so it will return 1 - 20, 21 - 40, 41 - 60...
+            ** - The process takes too long, even the minimap does not load, we can revisit at another time
+        * - Randomly 
  
         * Question: How to save the Photos view so viewDidLoad doesn't mess it up every time it is called?
             Currently we are retrieving photos from Core Data every time viewDidLoad is called, so photo albums changes every time view is called
  
 - When there's no images at a particular location from Flickr, alert user instead of crashing out with "fatal error: Index out of range" in the console
 
-
+- The map interface doesn't recognize taps after coming back from photoView
+ 
+    * - Add a print statement to tap function to see if taps are registering in the console
 
 
 - When a Photo Album View is opened for a pin that does not yet have any photos, it initiates a download from Flickr.?

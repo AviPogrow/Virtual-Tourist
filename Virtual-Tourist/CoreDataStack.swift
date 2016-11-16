@@ -62,6 +62,8 @@ class CoreDataStack {
                 let nserror = error as NSError
                 fatalError("Unresolved error \(nserror), \(nserror.userInfo)")
             }
+        } else {
+            print("%% In saveContext. No changes detected. Save cancelled.")
         }
     }
 }

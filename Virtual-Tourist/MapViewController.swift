@@ -99,6 +99,8 @@ class MapViewController: UIViewController, MKMapViewDelegate {
     // Fetch from Core Data a pin that matches the pin that the user selected based on coordinate
     // If pin found, set pin as selectedPin, otherwise create pin and save to Core Data
     func mapView(_ mapView: MKMapView, didSelect view: MKAnnotationView) {
+        print("%% in mapView(:didSelect view:)")
+        
         
         // Create fetch request
         let pinFetch: NSFetchRequest<Pin> = Pin.fetchRequest()
