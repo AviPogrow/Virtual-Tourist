@@ -127,7 +127,7 @@
                         <barButtonItem key="backBarButtonItem" title="Back" id="Ef6-q2-1xt"/>
                         <barButtonItem key="rightBarButtonItem" systemItem="refresh" id="1Ib-5F-Hhi">
                             <connections>
-                                <action selector="reloadPhotos:" destination="g7s-13-W5e" id="YNe-Yt-pCW"/>
+                                <action selector="getNewCollection:" destination="g7s-13-W5e" id="knj-3n-bWS"/>
                             </connections>
                         </barButtonItem>
                     </navigationItem>

@@ -63,7 +63,7 @@ class PhotoViewController: UIViewController, UICollectionViewDataSource, UIColle
         // Step 7b: Save to Core Data
         CoreDataStack.sharedInstance().saveContext()
         
-        print("test")
+
         
         photoCollectionView.dataSource = self
         photoCollectionView.delegate = self
@@ -142,7 +142,7 @@ class PhotoViewController: UIViewController, UICollectionViewDataSource, UIColle
             // else randomly select 21 photos using GKShuffledDistribution so we won't select the same image twice
         else {
             for _ in 1...21{
-                let randomIndex = RandomImage.sharedInstance().chooseRandomNumber(maxValue: photos.count)
+                let randomIndex = RandomImage.sharedInstance().chooseRandomNumber(maxValue: photos.count - 1)
                 albumPhotos.append(photos[randomIndex])
                 
                 // Step 6: Mark each selected photo as "inAlbum"
@@ -170,7 +170,7 @@ class PhotoViewController: UIViewController, UICollectionViewDataSource, UIColle
     }
     
     // MARK: Actions
-    @IBAction func reloadPhotos(_ sender: UIBarButtonItem) {
+    @IBAction func getNewCollection(_ sender: UIBarButtonItem) {
         
         /*
          
@@ -211,6 +211,24 @@ class PhotoViewController: UIViewController, UICollectionViewDataSource, UIColle
         photoCollectionView.reloadData()
         
         */
+        
+        // getNewCollection Step 1: Remove all "inAlbum" flags in photos array
+        for photo in photos{
+            photo.inAlbum = false
+        }
+        
+        // getNewCollection Step 2: Empty selectedPhotos array
+        selectedPhotos = []
+        
+        // getNewCollection Step 3: repopulate selectedPhotos array using randomlySelectPhoto()
+        // "inAlbum" flag will be added to each photo by same method
+        selectedPhotos = randomlySelectPhotos(photos: photos)
+        
+        // getNewCollection Step 5: reload Data
+        photoCollectionView.reloadData()
+        
+                print("test")
+        
     }
     
     
@@ -226,6 +244,8 @@ class PhotoViewController: UIViewController, UICollectionViewDataSource, UIColle
     // This method loads the image from Core Data or from the URL if the image is not available
     
     func loadImageOrURL(indexPath: IndexPath, cell: PhotoViewCell){
+        
+        cell.photoImageView.image = nil
         
         if selectedPhotos[indexPath.row].image == nil {
             cell.loadingIndicator.sizeToFit()
@@ -253,66 +273,7 @@ class PhotoViewController: UIViewController, UICollectionViewDataSource, UIColle
             cell.loadingIndicator.stopAnimating()
             cell.photoImageView.image = photo
         }
-        
-        
-        
-        
-        
-        /*
-        
-        //old code
-        
-        print("%%in CheckImage, index \(indexPath.row)")
-        
-        // TODO: Need to prevent it from crashing if no images
-        
-        // Clear out the image in the dequeued cell so user will know
-        // a new image is being loaded
-        cell.photoImageView.image = nil
-        
-        if photos[indexPath.row].image == nil {
-            
-            
-            //cell.photoImageView.image = UIImage(named: "Blank")
-            cell.loadingIndicator.sizeToFit()
-            cell.loadingIndicator.startAnimating()
-            
-            DispatchQueue.global(qos: .userInitiated).async {
-                
-                //use fetch results controller
-                let photoObject = self.fetchResultsController.object(at: indexPath)
-                
-                guard let url = URL(string: photoObject.url!),
-                    let imageData = try? Data(contentsOf: url) else {
-                    print("unable to process url in photo object obtained from fetch results controller")
-                    return
-                }
-                
-                
-                /* //using photos array
-                guard let url = URL(string: self.photos[indexPath.row].url!),
-                    let imageData = try? Data(contentsOf: url) else {
-                        print("Unable to process URL")
-                        return
-                }
-                */
-                self.photos[indexPath.row].image = imageData as NSData
- 
-                
-            }
-
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.1, execute: {
-                self.checkImage(indexPath: indexPath, cell: cell)
-            })
-            
-        }
-        else {
-            let photo = UIImage(data: photos[indexPath.row].image as! Data)
-            cell.loadingIndicator.stopAnimating()
-            cell.photoImageView.image = photo
-        }
- 
-        */
+    
     }
     
     // load photos from Core Data or Flickr
