@@ -27,17 +27,6 @@ class PhotoViewController: UIViewController, UICollectionViewDataSource, UIColle
  
     var managedContext = CoreDataStack.sharedInstance().persistentContainer.viewContext
     
-    /*
-     // old code
-    var lowIndex = 1
-    var highIndex = 21
-    var photosCount = 0
-
-    // Declare a fetch results controller
-    var fetchResultsController: NSFetchedResultsController<Photo>!
- 
-    */
-    
 
     // MARK: View Lifecycle methods
     override func viewDidLoad() {
@@ -45,9 +34,24 @@ class PhotoViewController: UIViewController, UICollectionViewDataSource, UIColle
         let regionRadius: CLLocationDistance = 1000
         let region = MKCoordinateRegionMakeWithDistance(selectedPin.coordinate, regionRadius * 2.0, regionRadius * 2.0)
         miniMap.setRegion(region, animated: true)
+        miniMap.addAnnotation(selectedPin)
         
         // Step 3: Place all photos in selectedPin to a photos array
         photos = Array(selectedPin!.photos!) as! [Photo]
+        
+        // TODO: Test Code
+        var downloaded = 0
+        var notDownloaded = 0
+        for photo in photos{
+            if photo.image == nil{
+                notDownloaded += 1
+            } else {
+                downloaded += 1
+            }
+        }
+        print("downloaded: \(downloaded), not downloaded: \(notDownloaded)")
+        // End Test Code
+        
     
         // Step 4: Check each photo see if they are "inAlbum", add them to selectedPhotos array
         selectedPhotos = checkInAlbumFlag(photos: photos)
@@ -63,63 +67,8 @@ class PhotoViewController: UIViewController, UICollectionViewDataSource, UIColle
         // Step 7b: Save to Core Data
         CoreDataStack.sharedInstance().saveContext()
         
-
-        
         photoCollectionView.dataSource = self
         photoCollectionView.delegate = self
-        
-        /* old code
-        let fetchRequest: NSFetchRequest<Photo> = Photo.fetchRequest()
-        photosCount = try! managedContext.count(for: fetchRequest)
-        print("Total photos count: \(photosCount)")
-        
-        // Set highIndex to count in case the # of photos available is lower than highIndex
-        // TODO: Is this necessary? If it is out side of bounds, it will return 0 hits,
-        highIndex = highIndex > photosCount ? photosCount : highIndex
-        
-        
-        // Look for photos that match a specific pin by using inverse relationship
-        //fetchRequest.predicate = NSPredicate(format: "%K == %@", #keyPath(Photo.pins), self.selectedPin)
-        
-        fetchRequest.predicate = NSPredicate(format: "(%K == %@) AND (%K BETWEEN {\(lowIndex), \(highIndex)})", #keyPath(Photo.pins), self.selectedPin, #keyPath(Photo.index))
-        print("Total retrieve with NSPredicate: \(try! managedContext.count(for: fetchRequest))")
-        
-        //fetchRequest.predicate = NSPredicate(format: "%K BETWEEN {\(lowIndex), \(highIndex)}", #keyPath(Photo.index))
-        
-        // %K >= %@, #keyPath(Photo.index),
-        
-        
-        //         pinFetch.predicate = NSPredicate(format: "(%K BETWEEN {\(lowerBoundLatitude), \(upperBoundLatitude) }) AND (%K BETWEEN {\(lowerBoundLongitude), \(upperBoundLongitude) })", #keyPath(Pin.latitude), #keyPath(Pin.longitude))
-        
-        // TODO: Need to add sort descriptor to NSFetchResultsController or it will crash with:
-        // An instance of NSFetchedResultsController requires a fetch request with sort descriptors
-        let sort = NSSortDescriptor(key: #keyPath(Photo.url), ascending: true)
-        
-        fetchRequest.sortDescriptors = [sort]
-        
-        // Should this be lazy var instead of let?
-        fetchResultsController = NSFetchedResultsController<Photo>(fetchRequest: fetchRequest, managedObjectContext: managedContext, sectionNameKeyPath: nil, cacheName: nil)
-        //let frc = NSFetchedResultsController<Photo>(fetchRequest: fetchRequest, managedObjectContext: managedContext, sectionNameKeyPath: nil, cacheName: nil)
-        
-        //fetchResultsController = frc
-        
-        
-        loadPhotosURL()
-        
-
-        
-        
-        // Fetch the data
-        do {
-            try fetchResultsController.performFetch()
-        } catch let error as NSError {
-            print("Unable to fetch \(error), \(error.userInfo)")
-        }
-        
-        fetchResultsController.delegate = self
- 
-        */
-        
         
     }
     
@@ -152,8 +101,6 @@ class PhotoViewController: UIViewController, UICollectionViewDataSource, UIColle
             }
         }
         
-        // TODO: Marked selected photos as "inAlbum", save to Core Data
-        
         return albumPhotos
     }
     
@@ -172,46 +119,6 @@ class PhotoViewController: UIViewController, UICollectionViewDataSource, UIColle
     // MARK: Actions
     @IBAction func getNewCollection(_ sender: UIBarButtonItem) {
         
-        /*
-         
-         // old code
-        
-        //FlickrClient.sharedInstance().getPhotosURLFromFlickr(pin: selectedPin, managed: managedContext)
-        
-        // No need to remove images if we are going to the next batch up
-        /*
-        for photo in photos{
-            photo.image = nil
-        }
-        */
-        
-        
-        let fetchRequest: NSFetchRequest<Photo> = Photo.fetchRequest()
-        let sort = NSSortDescriptor(key: #keyPath(Photo.url), ascending: true)
-        fetchRequest.sortDescriptors = [sort]
-        
-        if highIndex < photosCount - 20 {
-            lowIndex = highIndex
-            highIndex = highIndex + 20
-        } else {
-            lowIndex = highIndex
-            highIndex = photosCount
-        }
-        
-        fetchRequest.predicate = NSPredicate(format: "(%K == %@) AND (%K BETWEEN {\(lowIndex), \(highIndex)})", #keyPath(Photo.pins), self.selectedPin, #keyPath(Photo.index))
-        print("Total retrieve with NSPredicate: \(try! managedContext.count(for: fetchRequest))")
-        // Fetch the data
-        do {
-            try fetchResultsController.performFetch()
-        } catch let error as NSError {
-            print("Unable to fetch \(error), \(error.userInfo)")
-        }
-
-        
-        photoCollectionView.reloadData()
-        
-        */
-        
         // getNewCollection Step 1: Remove all "inAlbum" flags in photos array
         for photo in photos{
             photo.inAlbum = false
@@ -226,20 +133,11 @@ class PhotoViewController: UIViewController, UICollectionViewDataSource, UIColle
         
         // getNewCollection Step 5: reload Data
         photoCollectionView.reloadData()
-        
-                print("test")
-        
+
     }
     
     
     // MARK: Methods
-    
-    // FetchURLs from CoreData
-    
-    
-    
-    // This method checks if the image at the specified indexPath has been populated
-    // If not, use try? Data(contentsOf:) to get the image
     
     // This method loads the image from Core Data or from the URL if the image is not available
     
@@ -259,8 +157,13 @@ class PhotoViewController: UIViewController, UICollectionViewDataSource, UIColle
                 }
                 self.selectedPhotos[indexPath.row].image = imageData as NSData
                 
-                // TODO: Need to save image to photos array so it will be stored in Core Data
-                
+                // Loop through photos array to find matching downloaded photo
+                // Save it to photos array which will save it to Core Data
+                for photo in self.photos{
+                    if photo.index == self.selectedPhotos[indexPath.row].index{
+                        photo.image = imageData as NSData
+                    }
+                }
             }
             
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.1, execute: {
@@ -275,35 +178,6 @@ class PhotoViewController: UIViewController, UICollectionViewDataSource, UIColle
         }
     
     }
-    
-    // load photos from Core Data or Flickr
-    func loadPhotosURL() {
-        
-        /*
-        
-        // old code
-
-        // Use selected pin to look up if there are photos saved for that pin
-        // If not, get it from Flickr
-        if selectedPin.photos?.count == 0 {
-            
-            // Populate photos
-            FlickrClient.sharedInstance().getPhotosURLFromFlickr(pin: selectedPin, managed: managedContext)
-            
-                    // TODO: Switch this from converting from Set to Array to getting data from fetchresultscontroller
-             // Populate collection view with photos from Core Data by converting the set into an array
-            photos = Array(selectedPin!.photos!) as! [Photo]
-        } else {
-            // Populate collection view with photos from Core Data by converting the set into an array
-            photos = Array(selectedPin!.photos!) as! [Photo]
-            
-        }
- 
-        */
-        
-    }
-
-    
     
     // MARK: UICollectionViewDataSource
     
@@ -326,31 +200,10 @@ class PhotoViewController: UIViewController, UICollectionViewDataSource, UIColle
     
     func numberOfSections(in collectionView: UICollectionView) -> Int {
         
-        /*
-         
-         // old code
-        print("%% in numberOfSections (in collectionView) sections: \(fetchResultsController.sections?.count)")
-        
-        return fetchResultsController.sections?.count ?? 0
- 
-        */
-        
         return 1
     }
     
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
-        
-        /*
-        
-        // old code
-        let sectionInfo = self.fetchResultsController.sections![section]
-        
-                print("%%in collectionView(_:numberOfItemsInSection) objects: \(sectionInfo.numberOfObjects), name: \(sectionInfo.name)")
-        //po sectionInfo.objects
-        return sectionInfo.numberOfObjects
-        //return photos.count
- 
-        */
         
         return selectedPhotos.count
     }
@@ -364,24 +217,20 @@ class PhotoViewController: UIViewController, UICollectionViewDataSource, UIColle
         
         return cell
         
-        
-        
-        /*
-         
-         // old code
-        print("%% in collectionView CellForItemAt IndexPath: IndexPath.row: \(indexPath.row)")
-        let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "photoCell", for: indexPath) as! PhotoViewCell
-    
-        checkImage(indexPath: indexPath, cell: cell)
-        
-        return cell
- 
-        */
-        
     }
     
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
+        
+        
+        
+        
+        
+        
+        
         // TODO: Delete item
+        
+        
+        
     }
     
     
