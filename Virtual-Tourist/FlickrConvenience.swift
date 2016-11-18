@@ -12,6 +12,7 @@ import CoreData
 extension FlickrClient {
 
     
+    // Get image data from Flickr
     func getImageDataFromFlickr(urlString: String)->Data?{
         
         guard let url = URL(string: urlString),
@@ -51,10 +52,6 @@ extension FlickrClient {
                 print("Unable to unwrap data")
                 return
             }
-            
-            // TODO: Remove when testing is done 
-            //Confirmed Flickr portion works fine via this print statement
-            //print(data)
             
             // Pull out the photos dictionary from data, pull out the photos array from the photos dictionary
             guard let photosDictionary = data[FlickrConstants.ResponseKeys.Photos] as? [String:AnyObject],
@@ -100,11 +97,8 @@ extension FlickrClient {
                 // Save index to photo object (for filtering later)
                 photo.index = index + 1
                 
-                // Set inAlbume variable to false
+                // Set inAlbum variable to false
                 photo.inAlbum = false
-                
-                // Save to photos array used by UICollectionView
-                self.photos.append(photo)
                 
                 // Save photo to Selected Pin
                 selectedPin.addToPhotos(photo)

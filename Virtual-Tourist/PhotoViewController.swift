@@ -66,9 +66,7 @@ class PhotoViewController: UIViewController, UICollectionViewDataSource, UIColle
             }
         }
         print("downloaded: \(downloaded), not downloaded: \(notDownloaded)")
-        // End Test Code
-        
-        // MARK: Test Code
+
         var photosMarked = 0
         for photo in photos{
             if photo.inAlbum{
@@ -153,9 +151,7 @@ class PhotoViewController: UIViewController, UICollectionViewDataSource, UIColle
             
             // Delete Selected Photos Step 5: Delete photos in photos array and delete from context
             photos = photos.filter{!photosToBeDeleted.contains($0)}
-            for photo in photosToBeDeleted{
-                managedContext.delete(photo)
-            }
+            selectedPin.removeFromPhotos(Set(photosToBeDeleted) as NSSet)
             
             // MARK: Test Code
             let photosFetchRequestAfterDeletion = NSFetchRequest<Photo>(entityName: "Photo")

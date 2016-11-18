@@ -10,9 +10,6 @@ import Foundation
 
 class FlickrClient: NSObject {
     
-    
-    var photos: [Photo] = []
-    
     // shared session
     var session = URLSession.shared
     
@@ -38,7 +35,7 @@ class FlickrClient: NSObject {
     }
     
     
-    // MARK: Start Task
+    // MARK: Task to process request with session.dataTask
     func startTask(request: URLRequest, completionHandlerForTask: @escaping (_ result: AnyObject?, _ error: Error?)->Void)->URLSessionDataTask{
         let task = session.dataTask(with: request){
             data, response, error in

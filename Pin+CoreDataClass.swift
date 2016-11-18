@@ -12,6 +12,7 @@ import CoreData
 import MapKit
 
 @objc(Pin)
+// Learned how to persist pins from here: http://juliusdanek.de/blog/coding/2015/07/14/persistent-pins-tutorial/
 public class Pin: NSManagedObject, MKAnnotation {
 
     public var coordinate: CLLocationCoordinate2D {
