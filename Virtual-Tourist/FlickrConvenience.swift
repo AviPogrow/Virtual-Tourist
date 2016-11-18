@@ -10,30 +10,20 @@ import UIKit
 import CoreData
 
 extension FlickrClient {
+
     
+    func getImageDataFromFlickr(urlString: String)->Data?{
+        
+        guard let url = URL(string: urlString),
+            let imageData = try? Data(contentsOf: url) else {
+                print("Unable to process url into photo object")
+                return nil
+        }
+        return imageData
     
-    
-    
-    
-    /*
-     // Fill photos array with blank boxes with loading indicator enabled
-     func fillPhotosArray(managed context: NSManagedObjectContext)->[Photo] {
-     var photos:[Photo] = []
-     for _ in 0...19{
-     let image = UIImage(named: "Blank")!
-     let imageData: NSData = UIImagePNGRepresentation(image)! as NSData
-     let photo = Photo(context: context)
-     photo.image = imageData
-     photos.append(photo)
-     }
-     
-     return photos
-     }
-     */
-    
-    
+    }
  
-    // Get photos from Flickr and save to Core Data
+    // Get photo urls from Flickr and save to Core Data
     func getPhotosURLFromFlickr(pin selectedPin: Pin, managed context: NSManagedObjectContext) {
         
         // Setup the parameters
@@ -79,10 +69,6 @@ extension FlickrClient {
                 return
             }
             
-            // TODO: Add code to switch to a random page if there's more than one page
-            // TODO: Change this so it randomly picks 20 images if there's more than 20 images
-            // TODO: Save the image URL to Core Data
-            
             // Determine total available images to download from Flickr
             guard let totalImageFromFlickrStringValue = photosDictionary["total"] as? String,
                 let totalImageFromFlickr = Int(totalImageFromFlickrStringValue) else {
@@ -95,7 +81,7 @@ extension FlickrClient {
             // otherwise set it to whatever is available (1 - 249)
             let urlTotal = totalImageFromFlickr < 250 ? totalImageFromFlickr : 250
             
-            // Save each url into a photo object in Core Data
+            // Save each url into a photo object
             for index in 0...(urlTotal-1){
                 
                 let photoDictionary = photosArray[index] as [String:AnyObject]
@@ -128,12 +114,6 @@ extension FlickrClient {
         })
         task.resume()
         
-        // Save photo object to Core Data
-        do {
-            try context.save()
-        } catch let error as NSError {
-            print("Unable to save \(error), \(error.userInfo)")
-        }
     }
     
     

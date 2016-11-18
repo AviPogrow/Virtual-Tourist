@@ -74,13 +74,14 @@
                         <rect key="frame" x="0.0" y="0.0" width="375" height="667"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
-                            <mapView clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" fixedFrame="YES" mapType="standard" translatesAutoresizingMaskIntoConstraints="NO" id="RaY-H5-MhU">
+                            <mapView clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" mapType="standard" translatesAutoresizingMaskIntoConstraints="NO" id="RaY-H5-MhU">
                                 <rect key="frame" x="0.0" y="28" width="375" height="146"/>
-                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                                <constraints>
+                                    <constraint firstAttribute="height" constant="146" id="LRS-5w-fd9"/>
+                                </constraints>
                             </mapView>
-                            <collectionView clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" fixedFrame="YES" showsHorizontalScrollIndicator="NO" dataMode="prototypes" translatesAutoresizingMaskIntoConstraints="NO" id="ssD-b5-69i">
-                                <rect key="frame" x="0.0" y="173" width="320" height="474"/>
-                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                            <collectionView clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" showsHorizontalScrollIndicator="NO" dataMode="prototypes" translatesAutoresizingMaskIntoConstraints="NO" id="ssD-b5-69i">
+                                <rect key="frame" x="0.0" y="174" width="375" height="493"/>
                                 <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
                                 <collectionViewFlowLayout key="collectionViewLayout" minimumLineSpacing="10" minimumInteritemSpacing="10" id="4W2-kW-kqn">
                                     <size key="itemSize" width="50" height="50"/>
@@ -120,18 +121,40 @@
                                     </collectionViewCell>
                                 </cells>
                             </collectionView>
+                            <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="svb-9p-acM">
+                                <rect key="frame" x="0.0" y="637" width="375" height="30"/>
+                                <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
+                                <constraints>
+                                    <constraint firstAttribute="height" constant="30" id="MWr-qG-gnK"/>
+                                </constraints>
+                                <fontDescription key="fontDescription" type="system" weight="semibold" pointSize="15"/>
+                                <state key="normal" title="Get New Photo Collection"/>
+                                <connections>
+                                    <action selector="getNewCollectionOrDelete:" destination="g7s-13-W5e" eventType="touchUpInside" id="2wE-DV-XOY"/>
+                                </connections>
+                            </button>
                         </subviews>
                         <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
+                        <constraints>
+                            <constraint firstItem="RaY-H5-MhU" firstAttribute="leading" secondItem="GwX-z5-f50" secondAttribute="leading" id="E7Q-g5-trK"/>
+                            <constraint firstItem="svb-9p-acM" firstAttribute="bottom" secondItem="Giz-V1-M5m" secondAttribute="top" id="EjK-QV-PSR"/>
+                            <constraint firstAttribute="trailing" secondItem="ssD-b5-69i" secondAttribute="trailing" id="Euk-8q-ql4"/>
+                            <constraint firstItem="Giz-V1-M5m" firstAttribute="top" secondItem="ssD-b5-69i" secondAttribute="bottom" id="On2-tz-bV6"/>
+                            <constraint firstItem="RaY-H5-MhU" firstAttribute="top" secondItem="GwX-z5-f50" secondAttribute="topMargin" constant="28" id="PSM-4f-7ue"/>
+                            <constraint firstAttribute="trailing" secondItem="RaY-H5-MhU" secondAttribute="trailing" id="SrE-1j-D82"/>
+                            <constraint firstItem="ssD-b5-69i" firstAttribute="leading" secondItem="GwX-z5-f50" secondAttribute="leading" id="TH2-IF-C8d"/>
+                            <constraint firstItem="svb-9p-acM" firstAttribute="centerX" secondItem="ssD-b5-69i" secondAttribute="centerX" id="bE4-jd-LLV"/>
+                            <constraint firstItem="ssD-b5-69i" firstAttribute="top" secondItem="RaY-H5-MhU" secondAttribute="bottom" id="cHQ-Zl-hsv"/>
+                            <constraint firstAttribute="trailing" secondItem="svb-9p-acM" secondAttribute="trailing" id="lS6-pI-HRB"/>
+                            <constraint firstItem="svb-9p-acM" firstAttribute="leading" secondItem="GwX-z5-f50" secondAttribute="leading" id="wnC-T6-Xed"/>
+                            <constraint firstItem="ssD-b5-69i" firstAttribute="centerX" secondItem="GwX-z5-f50" secondAttribute="centerX" id="y2F-wR-9bS"/>
+                        </constraints>
                     </view>
                     <navigationItem key="navigationItem" id="7Xu-lA-84K">
                         <barButtonItem key="backBarButtonItem" title="Back" id="Ef6-q2-1xt"/>
-                        <barButtonItem key="rightBarButtonItem" systemItem="refresh" id="1Ib-5F-Hhi">
-                            <connections>
-                                <action selector="getNewCollection:" destination="g7s-13-W5e" id="knj-3n-bWS"/>
-                            </connections>
-                        </barButtonItem>
                     </navigationItem>
                     <connections>
+                        <outlet property="getNewCollectionOrDeleteButton" destination="svb-9p-acM" id="VRL-sA-7Wo"/>
                         <outlet property="miniMap" destination="RaY-H5-MhU" id="3sM-O4-E7q"/>
                         <outlet property="photoCollectionView" destination="ssD-b5-69i" id="mbO-bD-4CP"/>
                     </connections>

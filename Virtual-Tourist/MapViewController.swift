@@ -56,11 +56,21 @@ class MapViewController: UIViewController, MKMapViewDelegate {
         // so tapping edit button again will turn off edit mode
         // by hiding the deletionWarningLable, changing the edit
         // button label to "Edit", and set editMode flag to false
+        
+        
+        // if user tapped "done" editing
         if editMode{
             deletionWarningLabel.isHidden = true
             sender.title = "Edit"
             editMode = false
-        } else {
+            
+            //Save to Core Data as user completed the process of deleting pins
+            print("Calling save context from tappedEditButton(sender:)")
+            CoreDataStack.sharedInstance().saveContext()
+            
+        }
+        // if user tapped "edit" to begin deleting pins
+        else {
             deletionWarningLabel.isHidden = false
             sender.title = "Done"
             editMode = true
@@ -115,17 +125,25 @@ class MapViewController: UIViewController, MKMapViewDelegate {
         
         pinFetch.predicate = NSPredicate(format: "(%K BETWEEN {\(lowerBoundLatitude), \(upperBoundLatitude) }) AND (%K BETWEEN {\(lowerBoundLongitude), \(upperBoundLongitude) })", #keyPath(Pin.latitude), #keyPath(Pin.longitude))
         
+        
         if editMode{
             // Run fetch
             do {
                 let results = try managedContext.fetch(pinFetch)
                 if results.count > 0 {
-                    // Delete the pin
-                    managedContext.delete(results.first!)
-                    // Save Core Data
-                    try managedContext.save()
+                    
                     // Delete the annotation on the map
                     mapView.removeAnnotation(results.first!)
+                    
+                    // Delete the pin
+                    managedContext.delete(results.first!)
+                    
+                    
+//                    // Save Core Data
+//                    try managedContext.save()
+                    
+                    
+
                 } else {
                     print("Unable to locate pin to delete")
                 }
@@ -146,7 +164,9 @@ class MapViewController: UIViewController, MKMapViewDelegate {
                     pin.latitude = (view.annotation?.coordinate.latitude)!
                     pin.longitude = (view.annotation?.coordinate.longitude)!
                     selectedPin = pin
-                    try managedContext.save()
+                    
+                    
+//                    try managedContext.save()
                 }
             } catch let error as NSError {
                 print("Unable to fetch \(error), \(error.userInfo)")
@@ -185,7 +205,7 @@ class MapViewController: UIViewController, MKMapViewDelegate {
                 try managedContext.save()
             }
             catch let error as NSError {
-                print("Unable to save \(error), \(error.userInfo)")
+                print("Unable to save after creating new pin, \(error), \(error.userInfo)")
             }
             
             

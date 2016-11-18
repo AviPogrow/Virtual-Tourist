@@ -15,28 +15,44 @@ class PhotoViewController: UIViewController, UICollectionViewDataSource, UIColle
     // MARK: Outlets
     @IBOutlet weak var miniMap: MKMapView!
     @IBOutlet weak var photoCollectionView: UICollectionView!
+    @IBOutlet weak var getNewCollectionOrDeleteButton: UIButton!
+
     
     // MARK: Properties
     
-    // Step 1 & 2: Tap a pin, send pin to PhotoViewController (this is done through prepare for segue in MapViewController).
+    // Show Photos Step 1 & 2: Tap a pin, send pin to PhotoViewController (this is done through prepare for segue in MapViewController).
     var selectedPin:Pin!
     
+    // This holds all photos for a specific pin
     var photos: [Photo] = []
     
+    // This holds photos that will be displayed in UICollectionView
     var selectedPhotos: [Photo] = []
- 
+    
+    // This holds photos that the user selected to be deleted from the album
+    var photosToBeDeleted: [Photo] = []
+    
+    // Get access to context
     var managedContext = CoreDataStack.sharedInstance().persistentContainer.viewContext
+    
+    // Flag to confirm this view is active, set to true in ViewDidLoad, set to false in ViewWillDisappear
+    // Used by loadImageorURL method to stop loading images from Flickr if view is no longer active
+    var viewActive = false
     
 
     // MARK: View Lifecycle methods
     override func viewDidLoad() {
+        
+        // Setup Mini Map
         super.viewDidLoad()
         let regionRadius: CLLocationDistance = 1000
         let region = MKCoordinateRegionMakeWithDistance(selectedPin.coordinate, regionRadius * 2.0, regionRadius * 2.0)
         miniMap.setRegion(region, animated: true)
         miniMap.addAnnotation(selectedPin)
         
-        // Step 3: Place all photos in selectedPin to a photos array
+        viewActive = true
+        
+        // Show Photos Step 3: Place all photos in selectedPin to a photos array
         photos = Array(selectedPin!.photos!) as! [Photo]
         
         // TODO: Test Code
@@ -52,19 +68,29 @@ class PhotoViewController: UIViewController, UICollectionViewDataSource, UIColle
         print("downloaded: \(downloaded), not downloaded: \(notDownloaded)")
         // End Test Code
         
+        // TODO: Test Code
+        var photosMarked = 0
+        for photo in photos{
+            if photo.inAlbum{
+                photosMarked += 1
+            }
+        }
+        print("Photos marked 'inAlbum': \(photosMarked)")
+        // End Test Code
+        
     
-        // Step 4: Check each photo see if they are "inAlbum", add them to selectedPhotos array
+        // Show Photos Step 4: Check each photo see if they are "inAlbum", add them to selectedPhotos array
         selectedPhotos = checkInAlbumFlag(photos: photos)
         
-        // Step 5: if no photos were marked "inAlbum", randomly select 21 photos
+        // Show Photos Step 5: if no photos were marked "inAlbum", randomly select 21 photos
         if selectedPhotos.isEmpty {
             selectedPhotos = randomlySelectPhotos(photos: photos)
         }
         
-        // Step 7a: Save photos to managedContext
+        // Show Photos Step 7a: (Step 6 in randomlySelectPhotos method) Save photos to managedContext
         selectedPin.photos = Set(photos) as NSSet
         
-        // Step 7b: Save to Core Data
+        // Show Photos Step 7b: Save to Core Data
         CoreDataStack.sharedInstance().saveContext()
         
         photoCollectionView.dataSource = self
@@ -75,10 +101,103 @@ class PhotoViewController: UIViewController, UICollectionViewDataSource, UIColle
     override func viewWillDisappear(_ animated: Bool) {
         super.viewWillDisappear(animated)
         
-        // Save to Core Data
-        selectedPin.photos = Set(photos) as NSSet
-        CoreDataStack.sharedInstance().saveContext()
+        viewActive = false
         
+        // Save to Core Data
+        DispatchQueue.global(qos: .background).async {
+            self.selectedPin.photos = Set(self.photos) as NSSet
+            CoreDataStack.sharedInstance().saveContext()
+        }
+
+        
+    }
+    
+
+    
+    // MARK: Actions
+    
+    @IBAction func getNewCollectionOrDelete(_ sender: UIButton) {
+        
+        if photosToBeDeleted.isEmpty{
+            // getNewCollection Step 1: Remove all "inAlbum" flags in photos array
+            for photo in photos{
+                photo.inAlbum = false
+            }
+            
+            // getNewCollection Step 2: Empty selectedPhotos array
+            selectedPhotos = []
+            
+            // getNewCollection Step 3: repopulate selectedPhotos array using randomlySelectPhoto()
+            // "inAlbum" flag will be added to each photo by same method
+            selectedPhotos = randomlySelectPhotos(photos: photos)
+            
+            // getNewCollection Step 4: Move collection view back to the top
+            photoCollectionView.setContentOffset(CGPoint(x: 0.0, y: 0.0), animated: false)
+            
+            // getNewCollection Step 5: reload Data
+            photoCollectionView.reloadData()
+            
+            
+        }
+        else {
+            // Delete Selected Photos Step 4: (Step 3 in collectionView(:didSelectAt:)) When user taps "Delete Selected Photos", 
+            // update selectedPhotos to filter out all photos in photoToBeDeleted array
+            selectedPhotos = selectedPhotos.filter{!photosToBeDeleted.contains($0)}
+            
+            // TODO: Test Code
+            var photosMarked = 0
+            for photo in photos{
+                if photo.inAlbum{
+                    photosMarked += 1
+                }
+            }
+            print("Photos marked 'inAlbum': \(photosMarked)")
+            // End Test Code
+            
+            
+            // Delete Selected Photos Step 5: Remove "inAlbum" flag from photos that were deleted from selectedPhotos
+            photos = photos.map({ (Photo) -> Photo in
+                if photosToBeDeleted.contains(Photo){
+                    Photo.inAlbum = false
+                }
+                return Photo
+            })
+            
+            // TODO: Test Code
+            photosMarked = 0
+            for photo in photos{
+                if photo.inAlbum{
+                    photosMarked += 1
+                }
+            }
+            print("Photos marked 'inAlbum': \(photosMarked)")
+            // End Test Code
+            
+            showAlert(message: "\(photosToBeDeleted.count) photos deleted from this album.")
+
+            // Delete Selected Photos Step 6: Clear photosToBeDeleted array
+            photosToBeDeleted = []
+            
+            // Delete Selected Photos Step 7: Change button title back to "Get New Photo Collection"
+            getNewCollectionOrDeleteButton.setTitle("Get New Photo Collection", for: .normal)
+            
+            // Delete Selected Photos Step 8: Reload Photo Collection View
+            photoCollectionView.reloadData()
+            
+        }
+    }
+    
+
+    // MARK: Methods
+    
+    func showAlert(message: String) {
+        let alertController = UIAlertController(title: "", message: message, preferredStyle: .alert)
+        let okAction = UIAlertAction(title: "OK", style: .default){
+            _ in
+            self.dismiss(animated: true, completion: nil)
+        }
+        alertController.addAction(okAction)
+        present(alertController, animated: true, completion: nil)
     }
     
     func randomlySelectPhotos(photos: [Photo]) -> [Photo] {
@@ -94,7 +213,7 @@ class PhotoViewController: UIViewController, UICollectionViewDataSource, UIColle
                 let randomIndex = RandomImage.sharedInstance().chooseRandomNumber(maxValue: photos.count - 1)
                 albumPhotos.append(photos[randomIndex])
                 
-                // Step 6: Mark each selected photo as "inAlbum"
+                // Show Photos Step 6: Mark each selected photo as "inAlbum"
                 photos[randomIndex].inAlbum = true
                 
                 
@@ -116,33 +235,10 @@ class PhotoViewController: UIViewController, UICollectionViewDataSource, UIColle
         return albumPhotos
     }
     
-    // MARK: Actions
-    @IBAction func getNewCollection(_ sender: UIBarButtonItem) {
-        
-        // getNewCollection Step 1: Remove all "inAlbum" flags in photos array
-        for photo in photos{
-            photo.inAlbum = false
-        }
-        
-        // getNewCollection Step 2: Empty selectedPhotos array
-        selectedPhotos = []
-        
-        // getNewCollection Step 3: repopulate selectedPhotos array using randomlySelectPhoto()
-        // "inAlbum" flag will be added to each photo by same method
-        selectedPhotos = randomlySelectPhotos(photos: photos)
-        
-        // getNewCollection Step 5: reload Data
-        photoCollectionView.reloadData()
-
-    }
-    
-    
-    // MARK: Methods
-    
     // This method loads the image from Core Data or from the URL if the image is not available
-    
     func loadImageOrURL(indexPath: IndexPath, cell: PhotoViewCell){
         
+        // Clear out the image in the de-queued cell
         cell.photoImageView.image = nil
         
         if selectedPhotos[indexPath.row].image == nil {
@@ -150,15 +246,15 @@ class PhotoViewController: UIViewController, UICollectionViewDataSource, UIColle
             cell.loadingIndicator.startAnimating()
             
             DispatchQueue.global(qos: .userInitiated).async {
-                guard let url = URL(string: self.selectedPhotos[indexPath.row].url!),
-                    let imageData = try? Data(contentsOf: url) else {
+                
+                guard let imageData = FlickrClient.sharedInstance().getImageDataFromFlickr(urlString: self.selectedPhotos[indexPath.row].url!) else {
                         print("Unable to process url into photo object")
                         return
                 }
-                self.selectedPhotos[indexPath.row].image = imageData as NSData
-                
-                // Loop through photos array to find matching downloaded photo
-                // Save it to photos array which will save it to Core Data
+ 
+                // Loop through photos array to find matching photo object in selectedPhotos array
+                // Save the image to photos array which will eventually be saved to Core Data
+                // TODO: Look into using predicates to filter out photo that have matching index instead of looping through
                 for photo in self.photos{
                     if photo.index == self.selectedPhotos[indexPath.row].index{
                         photo.image = imageData as NSData
@@ -167,7 +263,14 @@ class PhotoViewController: UIViewController, UICollectionViewDataSource, UIColle
             }
             
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.1, execute: {
-                self.loadImageOrURL(indexPath: indexPath, cell: cell)
+                // Run this after waiting 1/10 of a second
+                // Check if photo view is still active
+                // Call itself if it is to display downloaded images
+                if self.viewActive{
+                    self.loadImageOrURL(indexPath: indexPath, cell: cell)
+                } else {
+                    print("View is not active")
+                }
             })
     
         }
@@ -221,17 +324,61 @@ class PhotoViewController: UIViewController, UICollectionViewDataSource, UIColle
     
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
         
+        print("%% in collectionView(:didSelectItemAt)")
+        
+        let cell = collectionView.cellForItem(at: indexPath) as! PhotoViewCell
         
         
-        
-        
-        
-        
-        // TODO: Delete item
-        
-        
+        // If user taps on the same cell, remove it from photosToBeDeleted array
+        // and replace the image with alpha value 0.5 with original
+        if photosToBeDeleted.contains(selectedPhotos[indexPath.row]){
+            let tempArray = [selectedPhotos[indexPath.row]]
+            photosToBeDeleted = photosToBeDeleted.filter{!tempArray.contains($0)}
+            let imageData = selectedPhotos[indexPath.row].image as! Data
+            cell.photoImageView.image = UIImage(data: imageData)
+            
+            // If photosToBeDelete is empty after removing the photo in this cell,
+            // change title back to "Get New Photo Collection"
+            if photosToBeDeleted.isEmpty{
+                getNewCollectionOrDeleteButton.setTitle("Get New Photo Collection", for: .normal)
+            }
+        }
+            
+        else {
+            // Delete Selected Photos Step 1: User taps image, the bottom button title changes from
+            // "Get New Photo Collection" to "Delete Selected Photos"
+            getNewCollectionOrDeleteButton.setTitle("Delete Selected Photos", for: .normal)
+            
+            // Delete Selected Photos Step 2: Change selected photo's alpha value to 0.5 to show the photo was selected
+            cell.photoImageView.image = cell.photoImageView.image?.alpha(value: 0.5)
+            
+            // Delete Selected Photos Step 3: Store selected photo object in photosToBeDeleted array
+            // Step 4 in getNewCollectionOrDelete method
+            photosToBeDeleted.append(selectedPhotos[indexPath.row])
+            
+            // TODO: Test Code
+            print("selected index: \(indexPath.row)")
+            // End test code
+            
+        }
         
     }
     
     
+}
+
+extension UIImage{
+    
+    
+    // Change alpha value of an image
+    // Code from here: http://stackoverflow.com/questions/28517866/how-to-set-the-alpha-of-a-uiimage-in-swift-programmatically
+    func alpha(value:CGFloat)->UIImage
+    {
+        UIGraphicsBeginImageContextWithOptions(size, false, scale)
+        draw(at: CGPoint.zero, blendMode: .normal, alpha: value)
+        let newImage = UIGraphicsGetImageFromCurrentImageContext()
+        UIGraphicsEndImageContext()
+        return newImage!
+        
+    }
 }
