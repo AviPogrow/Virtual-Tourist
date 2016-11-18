@@ -55,7 +55,7 @@ class PhotoViewController: UIViewController, UICollectionViewDataSource, UIColle
         // Show Photos Step 3: Place all photos in selectedPin to a photos array
         photos = Array(selectedPin!.photos!) as! [Photo]
         
-        // TODO: Test Code
+        // MARK: Test Code
         var downloaded = 0
         var notDownloaded = 0
         for photo in photos{
@@ -68,7 +68,7 @@ class PhotoViewController: UIViewController, UICollectionViewDataSource, UIColle
         print("downloaded: \(downloaded), not downloaded: \(notDownloaded)")
         // End Test Code
         
-        // TODO: Test Code
+        // MARK: Test Code
         var photosMarked = 0
         for photo in photos{
             if photo.inAlbum{
@@ -144,33 +144,23 @@ class PhotoViewController: UIViewController, UICollectionViewDataSource, UIColle
             // update selectedPhotos to filter out all photos in photoToBeDeleted array
             selectedPhotos = selectedPhotos.filter{!photosToBeDeleted.contains($0)}
             
-            // TODO: Test Code
-            var photosMarked = 0
-            for photo in photos{
-                if photo.inAlbum{
-                    photosMarked += 1
-                }
-            }
-            print("Photos marked 'inAlbum': \(photosMarked)")
+            // MARK: Test Code
+            let photosFetchRequestBeforeDeletion = NSFetchRequest<Photo>(entityName: "Photo")
+            photosFetchRequestBeforeDeletion.predicate = NSPredicate(format: "%K = %@", #keyPath(Photo.pins), self.selectedPin)
+            print("Photos in context:\(try! managedContext.count(for: photosFetchRequestBeforeDeletion))")
             // End Test Code
             
             
-            // Delete Selected Photos Step 5: Remove "inAlbum" flag from photos that were deleted from selectedPhotos
-            photos = photos.map({ (Photo) -> Photo in
-                if photosToBeDeleted.contains(Photo){
-                    Photo.inAlbum = false
-                }
-                return Photo
-            })
-            
-            // TODO: Test Code
-            photosMarked = 0
-            for photo in photos{
-                if photo.inAlbum{
-                    photosMarked += 1
-                }
+            // Delete Selected Photos Step 5: Delete photos in photos array and delete from context
+            photos = photos.filter{!photosToBeDeleted.contains($0)}
+            for photo in photosToBeDeleted{
+                managedContext.delete(photo)
             }
-            print("Photos marked 'inAlbum': \(photosMarked)")
+            
+            // MARK: Test Code
+            let photosFetchRequestAfterDeletion = NSFetchRequest<Photo>(entityName: "Photo")
+            photosFetchRequestAfterDeletion.predicate = NSPredicate(format: "%K = %@", #keyPath(Photo.pins), self.selectedPin)
+            print("Photos in context:\(try! managedContext.count(for: photosFetchRequestAfterDeletion))")
             // End Test Code
             
             showAlert(message: "\(photosToBeDeleted.count) photos deleted from this album.")
@@ -356,7 +346,7 @@ class PhotoViewController: UIViewController, UICollectionViewDataSource, UIColle
             // Step 4 in getNewCollectionOrDelete method
             photosToBeDeleted.append(selectedPhotos[indexPath.row])
             
-            // TODO: Test Code
+            // MARK: Test Code
             print("selected index: \(indexPath.row)")
             // End test code
             
