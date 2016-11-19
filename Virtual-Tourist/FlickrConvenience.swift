@@ -65,21 +65,9 @@ extension FlickrClient {
                 print("photo array from Flickr is empty.")
                 return
             }
-            
-            // Determine total available images to download from Flickr
-            guard let totalImageFromFlickrStringValue = photosDictionary["total"] as? String,
-                let totalImageFromFlickr = Int(totalImageFromFlickrStringValue) else {
-                    print("Unable to determine total images available on Flickr")
-                    return
-            }
-            
-            // Flickr only provides 250 images per page by default, so if the total available is greater than 250,
-            // set urlTotal (use to determine # of images to download) to 250,
-            // otherwise set it to whatever is available (1 - 249)
-            let urlTotal = totalImageFromFlickr < 250 ? totalImageFromFlickr : 250
-            
+
             // Save each url into a photo object
-            for index in 0...(urlTotal-1){
+            for index in 0...(photosArray.count-1){
                 
                 let photoDictionary = photosArray[index] as [String:AnyObject]
                 

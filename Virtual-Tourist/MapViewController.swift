@@ -101,6 +101,8 @@ class MapViewController: UIViewController, MKMapViewDelegate {
             // Setup the PhotoViewController, pass the coordinates from selectedPin
             let controller = segue.destination as! PhotoViewController
             controller.selectedPin = selectedPin
+            
+
         }
         
     }
@@ -134,8 +136,11 @@ class MapViewController: UIViewController, MKMapViewDelegate {
                     // Delete the annotation on the map
                     mapView.removeAnnotation(results.first!)
                     
+                    
+                    
                     // Delete the pin
-                    managedContext.delete(results.first!) 
+                    managedContext.delete(results.first!)
+                    print("Pin deleted.")
 
                 } else {
                     print("Unable to locate pin to delete")
@@ -162,6 +167,9 @@ class MapViewController: UIViewController, MKMapViewDelegate {
                 print("Unable to fetch \(error), \(error.userInfo)")
             }
             
+            // Deselect annotation before performing the segue so the pin can be re-selected
+            mapView.deselectAnnotation(view.annotation, animated: false)
+        
             performSegue(withIdentifier: "toPhotoView", sender: self)
         }
         
@@ -171,19 +179,20 @@ class MapViewController: UIViewController, MKMapViewDelegate {
     // Convert touch point on screen to coordinates on the map
     // Start getting URLs of photos from Flickr
     func addAnnotation(gestureRecognizer: UIGestureRecognizer){
-        print("Received Long press")
+
+        
         if gestureRecognizer.state == UIGestureRecognizerState.began{
+            print("Received Long press")
             let touchPoint = gestureRecognizer.location(in: mapView)
             let coordinates = mapView.convert(touchPoint, toCoordinateFrom: mapView)
             
-            let annotation = MKPointAnnotation()
-            annotation.coordinate = coordinates
-            mapView.addAnnotation(annotation)
-            
             // Place coordindates in a pin object
             let pin = Pin(context: managedContext)
-            pin.latitude = annotation.coordinate.latitude
-            pin.longitude = annotation.coordinate.longitude
+            pin.latitude = coordinates.latitude
+            pin.longitude = coordinates.longitude
+            
+            // Add pin to mapView
+            mapView.addAnnotation(pin)
             
             // Start getting photos from Flickr
             FlickrClient.sharedInstance().getPhotosURLFromFlickr(pin: pin, managed: managedContext)

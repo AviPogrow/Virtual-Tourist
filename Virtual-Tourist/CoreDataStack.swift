@@ -45,6 +45,7 @@ class CoreDataStack {
                  */
                 fatalError("Unresolved error \(error), \(error.userInfo)")
             }
+            //debugPrint(self.persistentContainer)
         })
         return container
     }()

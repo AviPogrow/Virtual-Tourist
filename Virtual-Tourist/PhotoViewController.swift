@@ -85,12 +85,17 @@ class PhotoViewController: UIViewController, UICollectionViewDataSource, UIColle
             selectedPhotos = randomlySelectPhotos(photos: photos)
         }
         
+        // Sort the selected photos by index so photos will display in order every time
+        selectedPhotos.sort{$0.index>$1.index}
+        
         // Show Photos Step 7a: (Step 6 in randomlySelectPhotos method) Save photos to managedContext
         selectedPin.photos = Set(photos) as NSSet
         
         // Show Photos Step 7b: Save to Core Data
         CoreDataStack.sharedInstance().saveContext()
         
+        // Show Photos Step 8: Set collection view data source as self, 
+        // which will read and display photos from the selectedPhotos array
         photoCollectionView.dataSource = self
         photoCollectionView.delegate = self
         
@@ -102,10 +107,9 @@ class PhotoViewController: UIViewController, UICollectionViewDataSource, UIColle
         viewActive = false
         
         // Save to Core Data
-        DispatchQueue.global(qos: .background).async {
-            self.selectedPin.photos = Set(self.photos) as NSSet
-            CoreDataStack.sharedInstance().saveContext()
-        }
+        self.selectedPin.photos = Set(self.photos) as NSSet
+        CoreDataStack.sharedInstance().saveContext()
+        
 
         
     }
