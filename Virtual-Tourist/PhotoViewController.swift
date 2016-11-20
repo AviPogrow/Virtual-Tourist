@@ -153,9 +153,18 @@ class PhotoViewController: UIViewController, UICollectionViewDataSource, UIColle
             // End Test Code
             
             
-            // Delete Selected Photos Step 5: Delete photos in photos array and delete from context
+            // Delete Selected Photos Step 5a: Delete photos in photos array and delete from context
             photos = photos.filter{!photosToBeDeleted.contains($0)}
-            selectedPin.removeFromPhotos(Set(photosToBeDeleted) as NSSet)
+            for photo in photosToBeDeleted{
+                managedContext.delete(photo)
+            }
+            
+            // Delete Selected Photos Step 5b: Save Context to Core Data
+            do {
+                try managedContext.save()
+            } catch let error as NSError {
+                print("Unable to save \(error), \(error.userInfo)")
+            }
             
             // MARK: Test Code
             let photosFetchRequestAfterDeletion = NSFetchRequest<Photo>(entityName: "Photo")

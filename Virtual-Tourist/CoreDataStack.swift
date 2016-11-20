@@ -17,11 +17,11 @@ class CoreDataStack {
         struct Static {
             static let instance = CoreDataStack()
         }
-        
+
         return Static.instance
     }
     
-    // Core Data Stadck from AppDelegate
+    // Core Data Stack from AppDelegate
     lazy var persistentContainer: NSPersistentContainer = {
         /*
          The persistent container for the application. This implementation
@@ -30,6 +30,7 @@ class CoreDataStack {
          error conditions that could cause the creation of the store to fail.
          */
         let container = NSPersistentContainer(name: "Virtual_Tourist")
+        
         container.loadPersistentStores(completionHandler: { (storeDescription, error) in
             if let error = error as NSError? {
                 // Replace this implementation with code to handle the error appropriately.
@@ -45,8 +46,11 @@ class CoreDataStack {
                  */
                 fatalError("Unresolved error \(error), \(error.userInfo)")
             }
-            //debugPrint(self.persistentContainer)
+
         })
+        
+        print(container.persistentStoreDescriptions)
+
         return container
     }()
     

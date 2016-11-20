@@ -126,48 +126,47 @@ class MapViewController: UIViewController, MKMapViewDelegate {
         
         pinFetch.predicate = NSPredicate(format: "(%K BETWEEN {\(lowerBoundLatitude), \(upperBoundLatitude) }) AND (%K BETWEEN {\(lowerBoundLongitude), \(upperBoundLongitude) })", #keyPath(Pin.latitude), #keyPath(Pin.longitude))
         
+        var results:[Pin] = []
+        
+        do{
+            results = try managedContext.fetch(pinFetch)
+        } catch let error as NSError {
+            print("Unable to fetch \(error), \(error.userInfo)")
+        }
         
         if editMode{
             // Run fetch
-            do {
-                let results = try managedContext.fetch(pinFetch)
-                if results.count > 0 {
-                    
-                    // Delete the annotation on the map
-                    mapView.removeAnnotation(results.first!)
-                    
-                    
-                    
-                    // Delete the pin
-                    managedContext.delete(results.first!)
-                    print("Pin deleted.")
-
-                } else {
-                    print("Unable to locate pin to delete")
-                }
-            } catch let error as NSError {
-                print("Unable to fetch \(error), \(error.userInfo)")
+            if results.count > 0 {
+                
+                // Delete the annotation on the map
+                mapView.removeAnnotation(results.first!)
+                
+                // Delete the pin
+                managedContext.delete(results.first!)
+                print("Pin deleted.")
+                
+            } else {
+                print("Unable to locate pin to delete")
             }
             
         } else {
             // Run fetch
-            do {
-                let results = try managedContext.fetch(pinFetch)
                 if results.count > 0 {
                     // Found pin, set found pin to selectedPin
                     selectedPin = results.first
                 } else {
-                    // Pin not found in Core Data, create a new pin and saved the coordinates that user selected into new pin
-                    let pin = Pin(context: managedContext)
-                    pin.latitude = (view.annotation?.coordinate.latitude)!
-                    pin.longitude = (view.annotation?.coordinate.longitude)!
-                    selectedPin = pin
+                    
+                   print("Unable to locate pin in Core Data")
+//                    // Pin not found in Core Data, create a new pin and saved the coordinates that user selected into new pin
+//                    let pin = Pin(context: managedContext)
+//                    pin.latitude = (view.annotation?.coordinate.latitude)!
+//                    pin.longitude = (view.annotation?.coordinate.longitude)!
+//                    selectedPin = pin
                 }
-            } catch let error as NSError {
-                print("Unable to fetch \(error), \(error.userInfo)")
-            }
+
             
             // Deselect annotation before performing the segue so the pin can be re-selected
+            // Learned from: http://stackoverflow.com/questions/1193928/how-to-close-a-callout-for-mkannotation-in-a-mkmapview
             mapView.deselectAnnotation(view.annotation, animated: false)
         
             performSegue(withIdentifier: "toPhotoView", sender: self)
