@@ -76,21 +76,24 @@ extension FlickrClient {
                     return
                 }
                 
-                // Create a photo object using provided context in method parameter
-                let photo = Photo(context: context)
+                // asynchronously run the following using the same thread as the context
+                context.perform{
+                    // Create a photo object using provided context in method parameter
+                    let photo = Photo(context: context)
+                    
+                    // Save url to photo object
+                    photo.url = imageURLString
+                    
+                    // Save index to photo object (for filtering later)
+                    photo.index = index + 1
+                    
+                    // Set inAlbum variable to false
+                    photo.inAlbum = false
+                    
+                    // Save photo to Selected Pin
+                    selectedPin.addToPhotos(photo)
+                }
                 
-                // Save url to photo object
-                photo.url = imageURLString
-                
-                // Save index to photo object (for filtering later)
-                photo.index = index + 1
-                
-                // Set inAlbum variable to false
-                photo.inAlbum = false
-                
-                // Save photo to Selected Pin
-                selectedPin.addToPhotos(photo)
-                            
             }
             
         })

@@ -246,17 +246,21 @@ class PhotoViewController: UIViewController, UICollectionViewDataSource, UIColle
             
             DispatchQueue.global(qos: .userInitiated).async {
                 
-                guard let imageData = FlickrClient.sharedInstance().getImageDataFromFlickr(urlString: self.selectedPhotos[indexPath.row].url!) else {
+                // Run this in the same thread as context
+                self.managedContext.perform {
+                    
+                    guard let imageData = FlickrClient.sharedInstance().getImageDataFromFlickr(urlString: self.selectedPhotos[indexPath.row].url!) else {
                         print("Unable to process url into photo object")
                         return
-                }
- 
-                // Loop through photos array to find matching photo object in selectedPhotos array
-                // Save the image to photos array which will eventually be saved to Core Data
-                // TODO: Look into using predicates to filter out photo that have matching index instead of looping through
-                for photo in self.photos{
-                    if photo.index == self.selectedPhotos[indexPath.row].index{
-                        photo.image = imageData as NSData
+                    }
+                    
+                    // Loop through photos array to find matching photo object in selectedPhotos array
+                    // Save the image to photos array which will eventually be saved to Core Data
+                    // TODO: Look into using predicates to filter out photo that have matching index instead of looping through
+                    for photo in self.photos{
+                        if photo.index == self.selectedPhotos[indexPath.row].index{
+                            photo.image = imageData as NSData
+                        }
                     }
                 }
             }
