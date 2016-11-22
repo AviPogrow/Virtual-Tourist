@@ -15,9 +15,6 @@ class RandomImage:NSObject {
         return GKShuffledDistribution(lowestValue: 0, highestValue: maxValue).nextInt()
     }
     
-    
-    //let randomNumber = GKShuffledDistribution(lowestValue: 0, highestValue: 100)
-    
     class func sharedInstance() -> RandomImage{
         struct Singleton{
             static var sharedInstance = RandomImage()

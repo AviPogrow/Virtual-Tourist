@@ -9,6 +9,7 @@
 import UIKit
 import MapKit
 import CoreData
+import GameplayKit
 
 class PhotoViewController: UIViewController, UICollectionViewDataSource, UICollectionViewDelegate, NSFetchedResultsControllerDelegate {
     
@@ -39,6 +40,8 @@ class PhotoViewController: UIViewController, UICollectionViewDataSource, UIColle
     // Used by loadImageorURL method to stop loading images from Flickr if view is no longer active
     var viewActive = false
     
+    var shuffled:GKShuffledDistribution! = nil
+    
 
     // MARK: View Lifecycle methods
     override func viewDidLoad() {
@@ -54,6 +57,9 @@ class PhotoViewController: UIViewController, UICollectionViewDataSource, UIColle
         
         // Show Photos Step 3: Place all photos in selectedPin to a photos array
         photos = Array(selectedPin!.photos!) as! [Photo]
+        
+        shuffled = GKShuffledDistribution.init(lowestValue: 0, highestValue: photos.count - 1)
+        
         
         // MARK: Test Code
         var downloaded = 0
@@ -209,8 +215,13 @@ class PhotoViewController: UIViewController, UICollectionViewDataSource, UIColle
             // else randomly select 21 photos using GKShuffledDistribution so we won't select the same image twice
         else {
             for _ in 1...21{
-                let randomIndex = RandomImage.sharedInstance().chooseRandomNumber(maxValue: photos.count - 1)
+                
+                let randomIndex = shuffled.nextInt()
                 albumPhotos.append(photos[randomIndex])
+                
+                // MARK: Test Code
+                print("Random Index: \(randomIndex)")
+                // End test code
                 
                 // Show Photos Step 6: Mark each selected photo as "inAlbum"
                 photos[randomIndex].inAlbum = true

@@ -65,6 +65,10 @@ extension FlickrClient {
                 print("photo array from Flickr is empty.")
                 return
             }
+            
+            // MARK: Test Code
+            print("Photos available for this pin: \(photosArray.count)")
+            // End test code
 
             // Save each url into a photo object
             for index in 0...(photosArray.count-1){
