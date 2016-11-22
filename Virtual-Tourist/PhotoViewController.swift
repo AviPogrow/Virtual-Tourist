@@ -40,6 +40,7 @@ class PhotoViewController: UIViewController, UICollectionViewDataSource, UIColle
     // Used by loadImageorURL method to stop loading images from Flickr if view is no longer active
     var viewActive = false
     
+    // This generates a random photo index (once it is populated in ViewDidLoad)
     var shuffled:GKShuffledDistribution! = nil
     
 
@@ -61,7 +62,7 @@ class PhotoViewController: UIViewController, UICollectionViewDataSource, UIColle
         shuffled = GKShuffledDistribution.init(lowestValue: 0, highestValue: photos.count - 1)
         
         
-        // MARK: Test Code
+        // MARK: Debug Code
         var downloaded = 0
         var notDownloaded = 0
         for photo in photos{
@@ -80,18 +81,18 @@ class PhotoViewController: UIViewController, UICollectionViewDataSource, UIColle
             }
         }
         print("Photos marked 'inAlbum': \(photosMarked)")
-        // End Test Code
+        // End Debug Code
         
     
         // Show Photos Step 4: Check each photo see if they are "inAlbum", add them to selectedPhotos array
         selectedPhotos = checkInAlbumFlag(photos: photos)
         
-        // Show Photos Step 5: if no photos were marked "inAlbum", randomly select 21 photos
+        // Show Photos Step 5a: if no photos were marked "inAlbum", randomly select 21 photos
         if selectedPhotos.isEmpty {
             selectedPhotos = randomlySelectPhotos(photos: photos)
         }
         
-        // Sort the selected photos by index so photos will display in order every time
+        // Show Photos Step 5b: Sort the selected photos by index so photos will display in order every time
         selectedPhotos.sort{$0.index>$1.index}
         
         // Show Photos Step 7a: (Step 6 in randomlySelectPhotos method) Save photos to managedContext
@@ -132,17 +133,27 @@ class PhotoViewController: UIViewController, UICollectionViewDataSource, UIColle
                 photo.inAlbum = false
             }
             
-            // getNewCollection Step 2: Empty selectedPhotos array
-            selectedPhotos = []
+            // getNewCollection Step 2: Delete current album from Core Data by 
+            // populating photosToBeDeleted array with selectedPhotos array and
+            // call itself as long as there's photos in the photos array
+            photosToBeDeleted = selectedPhotos
+            if photos.count > 0{
+                getNewCollectionOrDelete(sender)
+            } else {
+                showAlert(message: "No photos available at this pin.")
+            }
             
             // getNewCollection Step 3: repopulate selectedPhotos array using randomlySelectPhoto()
             // "inAlbum" flag will be added to each photo by same method
             selectedPhotos = randomlySelectPhotos(photos: photos)
             
-            // getNewCollection Step 4: Move collection view back to the top
+            // getNewCollection Step 4: Sort the selected photos by index so photos will display in order every time
+            selectedPhotos.sort{$0.index>$1.index}
+            
+            // getNewCollection Step 5: Move collection view back to the top
             photoCollectionView.setContentOffset(CGPoint(x: 0.0, y: 0.0), animated: false)
             
-            // getNewCollection Step 5: reload Data
+            // getNewCollection Step 6: reload Data
             photoCollectionView.reloadData()
             
             
@@ -152,15 +163,21 @@ class PhotoViewController: UIViewController, UICollectionViewDataSource, UIColle
             // update selectedPhotos to filter out all photos in photoToBeDeleted array
             selectedPhotos = selectedPhotos.filter{!photosToBeDeleted.contains($0)}
             
-            // MARK: Test Code
+            // MARK: Debug Code
             let photosFetchRequestBeforeDeletion = NSFetchRequest<Photo>(entityName: "Photo")
             photosFetchRequestBeforeDeletion.predicate = NSPredicate(format: "%K = %@", #keyPath(Photo.pins), self.selectedPin)
             print("Photos in context:\(try! managedContext.count(for: photosFetchRequestBeforeDeletion))")
-            // End Test Code
+            // End Debug Code
             
             
             // Delete Selected Photos Step 5a: Delete photos in photos array and delete from context
             photos = photos.filter{!photosToBeDeleted.contains($0)}
+            
+            // MARK: Test Code
+            shuffled = GKShuffledDistribution.init(lowestValue: 0, highestValue: photos.count - 1)
+            // end Test Code
+            
+            
             for photo in photosToBeDeleted{
                 managedContext.delete(photo)
             }
@@ -172,13 +189,13 @@ class PhotoViewController: UIViewController, UICollectionViewDataSource, UIColle
                 print("Unable to save \(error), \(error.userInfo)")
             }
             
-            // MARK: Test Code
+            // MARK: Debug Code
             let photosFetchRequestAfterDeletion = NSFetchRequest<Photo>(entityName: "Photo")
             photosFetchRequestAfterDeletion.predicate = NSPredicate(format: "%K = %@", #keyPath(Photo.pins), self.selectedPin)
             print("Photos in context:\(try! managedContext.count(for: photosFetchRequestAfterDeletion))")
-            // End Test Code
+            // End Debug Code
             
-            showAlert(message: "\(photosToBeDeleted.count) photos deleted from this album.")
+            showAlert(message: "\(photosToBeDeleted.count) photos were deleted.")
 
             // Delete Selected Photos Step 6: Clear photosToBeDeleted array
             photosToBeDeleted = []
@@ -219,9 +236,9 @@ class PhotoViewController: UIViewController, UICollectionViewDataSource, UIColle
                 let randomIndex = shuffled.nextInt()
                 albumPhotos.append(photos[randomIndex])
                 
-                // MARK: Test Code
+                // MARK: Debug Code
                 print("Random Index: \(randomIndex)")
-                // End test code
+                // End Debug code
                 
                 // Show Photos Step 6: Mark each selected photo as "inAlbum"
                 photos[randomIndex].inAlbum = true
@@ -370,9 +387,9 @@ class PhotoViewController: UIViewController, UICollectionViewDataSource, UIColle
             // Step 4 in getNewCollectionOrDelete method
             photosToBeDeleted.append(selectedPhotos[indexPath.row])
             
-            // MARK: Test Code
+            // MARK: Debug Code
             print("selected index: \(indexPath.row)")
-            // End test code
+            // End Debug code
             
         }
         
