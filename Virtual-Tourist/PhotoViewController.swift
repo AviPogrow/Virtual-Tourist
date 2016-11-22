@@ -61,7 +61,6 @@ class PhotoViewController: UIViewController, UICollectionViewDataSource, UIColle
         
         shuffled = GKShuffledDistribution.init(lowestValue: 0, highestValue: photos.count - 1)
         
-        
         // MARK: Debug Code
         var downloaded = 0
         var notDownloaded = 0
@@ -170,19 +169,18 @@ class PhotoViewController: UIViewController, UICollectionViewDataSource, UIColle
             // End Debug Code
             
             
-            // Delete Selected Photos Step 5a: Delete photos in photos array and delete from context
+            // Delete Selected Photos Step 5: Delete photos in photos array and delete from context
             photos = photos.filter{!photosToBeDeleted.contains($0)}
             
-            // MARK: Test Code
+            // Delete Selected Photos Step 6: Update shuffled as there are less photos in photos array
             shuffled = GKShuffledDistribution.init(lowestValue: 0, highestValue: photos.count - 1)
-            // end Test Code
-            
+
             
             for photo in photosToBeDeleted{
                 managedContext.delete(photo)
             }
             
-            // Delete Selected Photos Step 5b: Save Context to Core Data
+            // Delete Selected Photos Step 7: Save Context to Core Data
             do {
                 try managedContext.save()
             } catch let error as NSError {
@@ -197,13 +195,13 @@ class PhotoViewController: UIViewController, UICollectionViewDataSource, UIColle
             
             showAlert(message: "\(photosToBeDeleted.count) photos were deleted.")
 
-            // Delete Selected Photos Step 6: Clear photosToBeDeleted array
+            // Delete Selected Photos Step 8: Clear photosToBeDeleted array
             photosToBeDeleted = []
             
-            // Delete Selected Photos Step 7: Change button title back to "Get New Photo Collection"
+            // Delete Selected Photos Step 9: Change button title back to "Get New Photo Collection"
             getNewCollectionOrDeleteButton.setTitle("Get New Photo Collection", for: .normal)
             
-            // Delete Selected Photos Step 8: Reload Photo Collection View
+            // Delete Selected Photos Step 10: Reload Photo Collection View
             photoCollectionView.reloadData()
             
         }
@@ -237,7 +235,7 @@ class PhotoViewController: UIViewController, UICollectionViewDataSource, UIColle
                 albumPhotos.append(photos[randomIndex])
                 
                 // MARK: Debug Code
-                print("Random Index: \(randomIndex)")
+                //print("Random Index: \(randomIndex)")
                 // End Debug code
                 
                 // Show Photos Step 6: Mark each selected photo as "inAlbum"
@@ -307,6 +305,9 @@ class PhotoViewController: UIViewController, UICollectionViewDataSource, UIColle
         }
         else {
             let photo = UIImage(data: selectedPhotos[indexPath.row].image as! Data)
+            // MARK: Debug code
+            print("Photo index: \(selectedPhotos[indexPath.row].index)")
+            // end Debug code
             cell.loadingIndicator.stopAnimating()
             cell.photoImageView.image = photo
         }
